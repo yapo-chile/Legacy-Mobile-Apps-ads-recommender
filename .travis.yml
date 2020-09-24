@@ -1,0 +1,41 @@
+language: generic
+dist: bionic
+
+services:
+  - docker
+
+env:
+  global:
+    - BRANCH=$([ ${TRAVIS_BRANCH} == master ] && echo latest || echo ${TRAVIS_BRANCH})
+    - DOCKER_REGISTRY="${ARTIFACTORY_DOCKER_REGISTRY}"
+
+# This build should not be triggered by tags
+if: tags IS blank
+
+before_install:
+  - configure_jfrog_client
+  - helm init --client-only
+
+install: skip
+
+script:
+  - make test
+  - make pact
+
+after_failure:
+  - reports-publisher
+
+after_success:
+  - reports-publisher
+
+deploy:
+  - provider: script
+    script: make docker-publish
+    on:
+      all_branches: true
+      condition: $TRAVIS_PULL_REQUEST = false
+  - provider: script
+    script: make helm-publish
+    on:
+      all_branches: true
+      condition: $TRAVIS_PULL_REQUEST = false

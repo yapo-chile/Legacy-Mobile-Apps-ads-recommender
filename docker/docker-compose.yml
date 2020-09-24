@@ -1,0 +1,28 @@
+version: '3'
+# CLONE-RCONF REMOVE START
+volumes:
+  etcd: {}
+# CLONE-RCONF REMOVE END
+services:
+  pro-carousel:
+    build:
+      args:
+        - APPNAME
+        - MAIN_FILE=cmd/${APPNAME}/main.go
+      context: .
+      dockerfile: docker/dockerfile.dev
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+    ports:
+     - "${SERVICE_PORT}:8080"
+    volumes:
+      - ./:/app
+    environment:
+      CIRCUIT_BREAKER_FAILURE_RATIO: "0.5"
+      CIRCUIT_BREAKER_CONSECUTIVE_FAILURE: "2"
+      PRO_CAROUSEL_HEALTH_PATH: "${BASE_URL}/healthcheck"
+      LOGGER_SYSLOG_ENABLED: "false"
+      LOGGER_STDLOG_ENABLED: "true"
+      LOGGER_LOG_LEVEL: "0"
+      PROFILE_HOST: "http://10.15.1.78:7987"
+      PROMETHEUS_PORT: "8877"
+      PROMETHEUS_ENABLED: "true"

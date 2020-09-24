@@ -1,0 +1,71 @@
+# this file was not updated
+
+1.- Create the user:
+        $ create role creditms with password 'XgG5M_Qe3';
+        $ alter role creditms login ;
+
+2.- Create the database "credits-db"
+        $ create database "credits-db" owner creditms;
+
+3.- Allow access from the CREDITMS host in pg_hba.conf(Master and slaves)
+        local   credits-db     creditms                                md5
+        host	credits-db     creditms        10.45.1.160/32             md5
+
+3.1.- reload postgresql(Master and slaves)
+        # /etc/init.d/postgresql-9.3 reload
+
+4.0.- Enter in the new db as the new user
+	$ psql -U creditms credits-db
+
+4.1.- Create the table and sequence
+
+CREATE TABLE IF NOT EXISTS credits (
+    credit_id        SERIAL PRIMARY KEY,
+    user_id          INTEGER NOT NULL,
+    expiration_date  TIMESTAMP,
+    credits          INTEGER NOT NULL,
+    used             INTEGER,
+    created_at       TIMESTAMP NOT NULL Default CURRENT_TIMESTAMP
+);
+
+CREATE TYPE enum_transaction_type AS ENUM ('add', 'consume');
+CREATE TABLE IF NOT EXISTS transactions (
+    transaction_id      SERIAL PRIMARY KEY,
+    external_id      	INTEGER,
+    user_id             INTEGER NOT NULL,
+    credits             INTEGER NOT NULL,
+    created_at          TIMESTAMP NOT NULL Default CURRENT_TIMESTAMP,
+    transaction_type    enum_transaction_type NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS transaction_details (
+    transaction_detail_id   SERIAL PRIMARY KEY,
+    credits                 INTEGER NOT NULL,
+    created_at              TIMESTAMP NOT NULL Default CURRENT_TIMESTAMP,
+    transaction_id          INTEGER REFERENCES transactions ( transaction_id),
+    credit_id               INTEGER REFERENCES credits ( credit_id )
+);
+
+CREATE TYPE enum_transaction_params_name AS ENUM ('adminId', 'subject', 'description', 'isFree');
+CREATE TABLE IF NOT EXISTS transaction_params (
+    name              enum_transaction_params_name NOT NULL,
+    value             text NOT NULL,
+    transaction_id    INTEGER REFERENCES transactions ( transaction_id ),
+    created_at        TIMESTAMP NOT NULL Default CURRENT_TIMESTAMP,
+    PRIMARY KEY       (transaction_id,name)
+);
+
+5.0- Add new column "available" to transaction_details table and INDEX on credits and transactions tables, 2016-12-26.
+
+ALTER TABLE transaction_details ADD COLUMN available integer not null;
+CREATE INDEX index_date_credits ON credits (expiration_date);
+CREATE INDEX index_date_transactons ON transactions (created_at);
+
+6.0- New changes for admin assign
+
+CREATE TYPE enum_credits_type AS ENUM ('normal', 'admin', 'bonus');
+ALTER TYPE enum_transaction_type ADD VALUE 'edit';
+ALTER TABLE credits ADD COLUMN credit_type enum_credits_type NOT NULL Default('normal');
+
+7.0- New type for external_id on credits-db to accept service order form CP
+ALTER TABLE transactions ALTER COLUMN external_id TYPE bigint;

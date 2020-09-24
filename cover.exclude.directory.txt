@@ -1,0 +1,2 @@
+github.mpi-internal.com/Yapo/pro-carousel/pact
+github.mpi-internal.com/Yapo/pro-carousel/pkg/infrastructure

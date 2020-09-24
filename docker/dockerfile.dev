@@ -1,0 +1,20 @@
+FROM golang:1.13
+
+ENV TZ America/Santiago
+
+# Copy zoneinfo file and then remove cache
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime
+RUN GO111MODULE=off go get -u github.com/githubnemo/CompileDaemon
+
+ENV PATH="/pact/bin:${PATH}"
+
+EXPOSE 8080
+
+ARG APPNAME
+ARG MAIN_FILE
+ENV APPNAME ${APPNAME:-pro-carousel}
+ENV MAIN_FILE ${MAIN_FILE:-cmd/${APPNAME}/main.go}
+
+WORKDIR /app
+
+CMD CompileDaemon -log-prefix=false -build="go build -v -o ${APPNAME} ./${MAIN_FILE}" -command="./${APPNAME}"

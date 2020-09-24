@@ -1,0 +1,16 @@
+#Delete the comments if you want to turn on the alerts
+#
+#groups:
+#- name: yapo.rules
+#  rules:
+#  - alert: yapo_pro-carousel_errors_on_fib_input
+#    expr: pro-carousel_service_events_total{entity="fibonacci_interactor", event="bad_input", type="error"} > 100
+#    for: 10m
+#    labels:
+#      team: yapo
+#    annotations:
+#      summary: "Too many errors on fibonacci input: YAPO-DEV"
+#      description: "Too many errors for bad input in the fibonacci endpoint in the last 10 minutes."
+#      jira_ticket_queue: YAPOINC
+#      severity: "3"
+#      tags: service:name:pro-carousel,service:env:dev,company:name:yapo,notification:slack:yapo_prometheus_alert,notification:email:ana.mora@schibsted.com,ticketing:configuration:sev3:disable,ticketing:disabled:recovery:slack:yapo_prometheus_alert
