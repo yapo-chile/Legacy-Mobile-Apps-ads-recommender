@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/pact-foundation/pact-go/dsl"
@@ -121,42 +120,23 @@ func TestSendBroker(*testing.T) {
 		return
 	}
 
-	currentPact, currentVer, err := getContractInfo(conf.BrokerHost +
-		"/pacts/provider/" + fileWithoutExtension(file.Name()) + "/consumer/pro-carousel/latest")
-	if err != nil && !strings.Contains(err.Error(), errorNotFound) {
-		fmt.Printf("Error getting the contract from the broker: +%v\n", err)
-		return
+	if oldPactResponse == nil {
+		sendCond = true
+	} else if !reflect.DeepEqual(oldPactResponse, newPactResponse) {
+		sendCond = true
+		newVer = currentVer + 0.1
 	}
 
 	if sendCond {
 		err := pactPublisher.Publish(types.PublishRequest{
-			PactURLs:        []string{"./pacts/goms.json"},
+			PactURLs:        []string{"./pacts/pro-carousel.json"},
 			PactBroker:      conf.BrokerHost + ":" + conf.BrokerPort,
 			ConsumerVersion: fmt.Sprintf("%.1f", newVer),
-			Tags:            []string{"goms"},
+			Tags:            []string{"pro-carousel"},
 		})
 		if err != nil {
 			fmt.Printf("Error with the Pact Broker server. Error %+v\n", err)
 			return
-		}
-
-		if currentPact != nil && !reflect.DeepEqual(currentPact, newPact) {
-			fmt.Printf("Newer version available! old version: %+v\n", currentVer)
-			newVer = currentVer + 0.1
-		}
-
-		if currentPact == nil || (newVer > currentVer) {
-			fmt.Printf("Publishing pact, version: %.1f\n", newVer)
-			err := pactPublisher.Publish(types.PublishRequest{
-				PactURLs:        []string{f},
-				PactBroker:      conf.BrokerHost + ":" + conf.BrokerPort,
-				ConsumerVersion: fmt.Sprintf("%.1f", newVer),
-				Tags:            []string{"pro-carousel"},
-			})
-			if err != nil {
-				fmt.Printf("Error with the Pact Broker server. Error %+v\n", err)
-				return
-			}
 		}
 	}
 }
