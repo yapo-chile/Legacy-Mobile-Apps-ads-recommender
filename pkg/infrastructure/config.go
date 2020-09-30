@@ -111,7 +111,7 @@ func (cc CorsConf) GetHeaders() map[string]string {
 // InBrowserCacheConf Used to handle browser cache
 type InBrowserCacheConf struct {
 	Enabled bool `env:"ENABLED" envDefault:"false"`
-	//Cache max age in secs(use browser cache)
+	// Cache max age in secs(use browser cache)
 	MaxAge time.Duration `env:"MAX_AGE" envDefault:"720h"`
 	Etag   int64
 }

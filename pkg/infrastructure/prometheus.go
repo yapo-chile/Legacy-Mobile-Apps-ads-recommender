@@ -133,7 +133,7 @@ func sanitizeMetricName(name string) string {
 	str := notSnakeChars.ReplaceAllString(name, "_")
 	str = toSnakeCase(str)
 	for strings.Contains(str, "__") { // remove every double underscore
-		str = strings.Replace(str, "__", "_", -1)
+		str = strings.ReplaceAll(str, "__", "_")
 	}
 	return endStartUnderscore.ReplaceAllString(str, "")
 }

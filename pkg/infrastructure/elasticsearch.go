@@ -49,7 +49,7 @@ type CauseBulk struct {
 
 // NewElasticHandlerHandler will create a new instance of a custom http request handler
 func NewElasticHandlerHandler(
-	maxIdleConns, maxIdleConnsPerHost, MaxConnsPerHost, IdleConnTimeout, batchSize int, searchTimeout time.Duration,
+	maxIdleConns, maxIdleConnsPerHost, maxConnsPerHost, idleConnTimeout, batchSize int, searchTimeout time.Duration,
 	addresses string,
 	logger loggers.Logger) *ElasticHandler {
 	cfg := elasticsearch.Config{
@@ -59,8 +59,8 @@ func NewElasticHandlerHandler(
 		Transport: &http.Transport{
 			MaxIdleConns:        maxIdleConns,
 			MaxIdleConnsPerHost: maxIdleConnsPerHost,
-			MaxConnsPerHost:     MaxConnsPerHost,
-			IdleConnTimeout:     time.Duration(IdleConnTimeout) * time.Second,
+			MaxConnsPerHost:     maxConnsPerHost,
+			IdleConnTimeout:     time.Duration(idleConnTimeout) * time.Second,
 		},
 	}
 	es7, _ := elasticsearch.NewClient(cfg)
@@ -78,11 +78,11 @@ func (es *ElasticHandler) Info() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	res.String() // https://github.com/elastic/go-elasticsearch/issues/123
+	res.String() //nolint https://github.com/elastic/go-elasticsearch/issues/123
 	defer res.Body.Close()
 	// Check response status
 	if res.IsError() {
-		err = fmt.Errorf("Error: ", res.String())
+		err = fmt.Errorf("error: %s", res.String())
 	}
 	return res, err
 }
@@ -93,9 +93,10 @@ func (es *ElasticHandler) Create(index string) error {
 		return fmt.Errorf("cannot delete index: %s", err)
 	}
 	res, err := es.client.Indices.Create(index)
-	res.String() // https://github.com/elastic/go-elasticsearch/issues/123
+	// issue: https://github.com/elastic/go-elasticsearch/issues/123
+	res.String() // nolint
 	if err != nil || res.IsError() {
-		return fmt.Errorf("Cannot create index: %s", err)
+		return fmt.Errorf("cannot create index: %s", err)
 	}
 	return nil
 }
@@ -108,9 +109,10 @@ func (es *ElasticHandler) PutMapping(mapping []byte, index string) error {
 		[]string{index},
 		strings.NewReader(string(mapping)),
 	)
-	res.String() // https://github.com/elastic/go-elasticsearch/issues/123
+	// issue: https://github.com/elastic/go-elasticsearch/issues/123
+	res.String() // nolint
 	if err != nil || res.IsError() {
-		return fmt.Errorf("Cannot put mapping on index: %s", err)
+		return fmt.Errorf("cannot put mapping on index: %s", err)
 	}
 	return nil
 }
@@ -165,7 +167,7 @@ func (es *ElasticHandler) Bulk(collection []ElasticItem, index, action string) e
 			currBatch++
 		}
 		// Prepare the metadata payload
-		meta := []byte(fmt.Sprintf(`{ "%s" : { "_id" : "%d" } }%s`, action, item.ID, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "%s" : { "_id" : "%s" } }%s`, action, item.ID, "\n"))
 		// Prepare the data payload: encode to JSON
 		data, err := json.Marshal(item.Data)
 		if err != nil {
@@ -186,41 +188,13 @@ func (es *ElasticHandler) Bulk(collection []ElasticItem, index, action string) e
 				es.logger.Error("ElasticSearch Bulk Fails: indexing batch %d: %s", currBatch, err)
 			}
 			// If the whole request failed, print error and mark all documents as failed
-			res.String()
+			// issue: https://github.com/elastic/go-elasticsearch/issues/123
+			res.String() // nolint
 			if res.IsError() {
 				numErrors += numItems
-				if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
-					es.logger.Error("Failure to to parse response body: %s", err)
-				} else {
-					es.logger.Error("  Error: [%d] %s: %s",
-						res.StatusCode,
-						raw["error"].(map[string]interface{})["type"],
-						raw["error"].(map[string]interface{})["reason"],
-					)
-				}
+				es.bulkError(res, raw)
 			} else {
-				if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
-					es.logger.Error("Failure to to parse response body: %s", err)
-				} else {
-					for _, d := range blk.Items {
-						// ... so for any HTTP status above 201 ...
-						if d.Index.Status > 201 {
-							// ... increment the error counter ...
-							numErrors++
-							// ... and print the response status and error information ...
-							es.logger.Error("  Error: [%d]: %s: %s: %s: %s",
-								d.Index.Status,
-								d.Index.Error.Type,
-								d.Index.Error.Reason,
-								d.Index.Error.Cause.Type,
-								d.Index.Error.Cause.Reason,
-							)
-						} else {
-							// ... otherwise increase the success counter.
-							numIndexed++
-						}
-					}
-				}
+				numErrors, numIndexed = es.bulkOK(res, blk, numErrors, numIndexed)
 			}
 			res.Body.Close()
 			buf.Reset()
@@ -228,4 +202,42 @@ func (es *ElasticHandler) Bulk(collection []ElasticItem, index, action string) e
 		}
 	}
 	return nil
+}
+
+func (es *ElasticHandler) bulkError(res *esapi.Response, raw map[string]interface{}) {
+	if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
+		es.logger.Error("Failure to to parse response body: %s", err)
+	} else {
+		es.logger.Error("  Error: [%d] %s: %s",
+			res.StatusCode,
+			raw["error"].(map[string]interface{})["type"],
+			raw["error"].(map[string]interface{})["reason"],
+		)
+	}
+}
+
+func (es *ElasticHandler) bulkOK(res *esapi.Response, blk *BulkResponse, numErrors, numIndexed int) (int, int) {
+	if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
+		es.logger.Error("Failure to to parse response body: %s", err)
+	} else {
+		for _, d := range blk.Items {
+			// ... so for any HTTP status above 201 ...
+			if d.Index.Status > 201 {
+				// ... increment the error counter ...
+				numErrors++
+				// ... and print the response status and error information ...
+				es.logger.Error("  Error: [%d]: %s: %s: %s: %s",
+					d.Index.Status,
+					d.Index.Error.Type,
+					d.Index.Error.Reason,
+					d.Index.Error.Cause.Type,
+					d.Index.Error.Cause.Reason,
+				)
+			} else {
+				// ... otherwise increase the success counter.
+				numIndexed++
+			}
+		}
+	}
+	return numErrors, numIndexed
 }

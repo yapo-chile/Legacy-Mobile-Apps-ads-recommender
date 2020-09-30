@@ -84,7 +84,7 @@ func NewRconf(host, path, prefix string, log RconfLogger) (*Rconf, error) {
 		log.Error("Error to get url %s", url)
 		return rconf, err
 	}
-	//Close body after all
+	// Close body after all
 	defer resp.Body.Close() // nolint: errcheck
 
 	body, err := readAll(resp, log)
