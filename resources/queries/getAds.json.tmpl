@@ -1,0 +1,20 @@
+{
+	"query": {
+		"function_score" : {
+			"query": {
+				"bool": {
+					"must": [{{.Musts}}],
+					"should": [{{.Shoulds}}], 
+					"filter": [{{.Filters}}]
+				}
+			},
+			"gauss": {
+				"ListTime": {
+					"origin": "now/1d",
+					"offset": "1d",
+					"scale": "7d"
+				}
+			}
+		}
+	}
+}
