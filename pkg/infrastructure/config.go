@@ -72,12 +72,13 @@ type EtcdConf struct {
 
 // AdConf configure how to get ads and how to fill some fields
 type AdConf struct {
-	ImageServerURL         string `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
-	CurrencySymbol         string `env:"CURRENCY_SYMBOL" envDefault:"$"`
-	UnitOfAccountSymbol    string `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
-	MinDisplayedAds        int    `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
-	MaxDisplayedAds        int    `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
-	DefaultRequestedAdsQty int    `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	ImageServerURL         string   `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
+	CurrencySymbol         string   `env:"CURRENCY_SYMBOL" envDefault:"$"`
+	UnitOfAccountSymbol    string   `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
+	MinDisplayedAds        int      `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
+	MaxDisplayedAds        int      `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
+	DefaultRequestedAdsQty int      `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	SuggestionsParams      []string `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
 }
 
 // ElasticSearchConf configuration for the elastic search client
