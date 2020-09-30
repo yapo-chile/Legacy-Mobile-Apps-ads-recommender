@@ -196,6 +196,9 @@ func load(conf reflect.Value, envTag, envDefault string) { //nolint: gocyclo, go
 				if value, err := strconv.ParseFloat(value, 64); err == nil {
 					reflectedConf.Set(reflect.ValueOf(value))
 				}
+			case []string:
+				values := strings.Split(value, ",")
+				reflectedConf.Set(reflect.ValueOf(values))
 			case string:
 				reflectedConf.Set(reflect.ValueOf(value))
 			case bool:
