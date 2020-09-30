@@ -62,6 +62,39 @@ type CorsConf struct {
 	Headers string `env:"HEADERS" envDefault:"Accept,Content-Type,Content-Length,If-None-Match,Accept-Encoding,User-Agent"`
 }
 
+// EtcdConf configure how to read configuration from remote Etcd service
+type EtcdConf struct {
+	Host       string `env:"HOST" envDefault:"http://etcd-server.yapo.cl"`
+	LastUpdate string `env:"LAST_UPDATE" envDefault:"/last_update"`
+	Prefix     string `env:"PREFIX" envDefault:"/v2/keys"`
+	RegionPath string `env:"REGION_PATH" envDefault:"/public/location/regions.json"`
+}
+
+// AdConf configure how to get ads and how to fill some fields
+type AdConf struct {
+	ImageServerURL         string `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
+	CurrencySymbol         string `env:"CURRENCY_SYMBOL" envDefault:"$"`
+	UnitOfAccountSymbol    string `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
+	MinDisplayedAds        int    `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
+	MaxDisplayedAds        int    `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
+	DefaultRequestedAdsQty int    `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+}
+
+// ElasticSearchConf configuration for the elastic search client
+type ElasticSearchConf struct {
+	Index               string        `env:"INDEX" envDefault:"ads_dev01"`
+	Host                string        `env:"HOST" envDefault:"http://elastic:9200"`
+	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
+	MaxIdleConnsPerHost int           `env:"MAX_IDLE_CONNECTIONS_PER_HOST" envDefault:"10"`
+	MaxConnsPerHost     int           `env:"MAX_CONNECTIONS_PER_HOST" envDefault:"10"`
+	IdleConnTimeout     int           `env:"IDLE_CONNECTIONS_TIMEOUT" envDefault:"3"`
+	BatchSize           int           `env:"BATCH_SIZE" envDefault:"10000"`
+	SearchResultSize    int           `env:"SEARCH_RESULT_SIZE" envDefault:"10"`
+	SearchResultPage    int           `env:"SEARCH_RESULT_PAGE" envDefault:"0"`
+	SearchTimeout       time.Duration `env:"SEARCH_TIMEOUT" envDefault:"3s"`
+	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"./resources/queries/"`
+}
+
 // GetHeaders return map of cors used
 func (cc CorsConf) GetHeaders() map[string]string {
 	if !cc.Enabled {
@@ -98,6 +131,9 @@ type Config struct {
 	ProCarouselClientConf ProCarouselClientConf `env:"PRO_CAROUSEL_"`
 	CorsConf              CorsConf              `env:"CORS_"`
 	InBrowserCacheConf    InBrowserCacheConf    `env:"BROWSER_CACHE_"`
+	ElasticSearchConf     ElasticSearchConf     `env:"ELASTICSEARCH_"`
+	EtcdConf              EtcdConf              `env:"ETCD_"`
+	AdConf                AdConf                `env:"AD_"`
 }
 
 // LoadFromEnv loads the config data from the environment variables
