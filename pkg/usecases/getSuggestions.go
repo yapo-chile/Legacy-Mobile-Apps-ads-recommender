@@ -1,15 +1,9 @@
 package usecases
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
-)
-
-const (
-	errorLimitExceed  = "requesting %d ads but the limit to display is %d"
-	errorMinNotEnough = "requesting %d ads but the minimum ads quantity to display is %d"
 )
 
 // GetSuggestions contains the repositories needed for execute a query to elastic search
@@ -24,8 +18,8 @@ type GetSuggestions struct {
 
 // GetSuggestionsLogger defines the logger methods that will be used for this use case
 type GetSuggestionsLogger interface {
-	LimitExceeded(err error)
-	MinimumQtyNotEnough(err error)
+	LimitExceeded(size, maxDisplayedAds, defaultAdsQty int)
+	MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int)
 	ErrorGettingAd(listID string, err error)
 	ErrorGettingAds(musts, shoulds, mustsNot map[string]string, err error)
 	NotEnoughAds(listID string, lenAds int)
@@ -39,13 +33,12 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	listID string, size, from int,
 ) (ads []domain.Ad, err error) {
 	if size > interactor.MaxDisplayedAds {
-		err = fmt.Errorf(errorLimitExceed, size, interactor.MaxDisplayedAds)
-		interactor.Logger.LimitExceeded(err)
+
+		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
 		size = interactor.RequestedAdsQty
 	}
 	if size < interactor.MinDisplayedAds {
-		err = fmt.Errorf(errorMinNotEnough, size, interactor.MinDisplayedAds)
-		interactor.Logger.MinimumQtyNotEnough(err)
+		interactor.Logger.MinimumQtyNotEnough(size, interactor.MinDisplayedAds, interactor.RequestedAdsQty)
 		size = interactor.RequestedAdsQty
 	}
 
@@ -63,7 +56,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	)
 
 	if err != nil {
-		interactor.Logger.ErrorGettingAds(mustParameters, shouldParameters, err)
+		interactor.Logger.ErrorGettingAds(mustParameters, shouldParameters, mustNotParameters, err)
 		return
 	}
 	// log info if there is not enough ads to return
