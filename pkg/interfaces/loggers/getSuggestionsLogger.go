@@ -6,12 +6,18 @@ type getSuggestionsLogger struct {
 	logger Logger
 }
 
-func (l *getSuggestionsLogger) LimitExceeded(err error) {
-	l.logger.Error("%+v", err)
+func (l *getSuggestionsLogger) LimitExceeded(size, maxDisplayedAds, defaultAdsQty int) {
+	l.logger.Info(
+		"requesting %d ads but the limit to display is %d, setting size on %d",
+		size, maxDisplayedAds, defaultAdsQty,
+	)
 }
 
-func (l *getSuggestionsLogger) MinimumQtyNotEnough(err error) {
-	l.logger.Error("%+v", err)
+func (l *getSuggestionsLogger) MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int) {
+	l.logger.Info(
+		"requesting %d ads but the minimum ads quantity to display is %d, setting size on %d",
+		size, minDisplayedAds, defaultAdsQty,
+	)
 }
 
 func (l *getSuggestionsLogger) ErrorGettingAd(listID string, err error) {
