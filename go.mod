@@ -8,6 +8,7 @@ require (
 	github.com/Yapo/logger v0.0.0-20170328173756-91855e974718
 	github.com/anevsky/cachego v0.0.0-20170305195447-977d3faf0e5b
 	github.com/axw/gocov v1.0.0
+	github.com/elastic/go-elasticsearch/v8 v8.0.0-20200928071025-e60736373e1a
 	github.com/githubnemo/CompileDaemon v1.0.0
 	github.com/golangci/golangci-lint v1.23.1
 	github.com/gorilla/context v1.1.1

@@ -1,0 +1,88 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "pro-carousel.fullname" . -}}
+{{- $hostPrefix := include "pro-carousel.hostPrefix" . -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "pro-carousel.labels" . | indent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{ range $key, $value := .Values.ingress.hosts }}
+    {{- range .locations }}
+      {{- if .path }}
+    yapo.nginx/location.{{ $key }}.path: "{{ .path }}"
+      {{- end }}
+      {{- if .header_host }}
+    yapo.nginx/location.{{ $key }}.header_host: "{{ .header_host }}"
+      {{- end }}
+      {{- if .host }}
+    yapo.nginx/location.{{ $key }}.host: "{{ .host }}"
+      {{- else }}
+    yapo.nginx/location.{{ $key }}.host: "{{ printf "%s.%s" $hostPrefix $value.host }}"
+      {{- end }}
+      {{- if .servers }}
+    yapo.nginx/location.{{ $key }}.servers: "{{ .servers }}"
+      {{- end }}
+    {{- end }}
+    {{ range .split_clients }}
+      {{- if .path }}
+    yapo.nginx/split_clients.{{ $key }}.origin: "{{ .path }}"
+      {{- end }}
+      {{- if .host }}
+    yapo.nginx/split_clients.{{ $key }}.host: "{{ .host }}"
+      {{- else }}
+    yapo.nginx/split_clients.{{ $key }}.host: "{{ printf "%s.%s" $hostPrefix $value.host }}"
+      {{- end }}
+      {{- if .percent }}
+    yapo.nginx/split_clients.{{ $key }}.percent: "{{ .percent }}"
+      {{- end }}
+      {{- if .servers }}
+    yapo.nginx/split_clients.{{ $key }}.servers: "{{ .servers }}"
+      {{- end }}
+      {{- if .default }}
+    yapo.nginx/split_clients.{{ $key }}.default: "{{ .default }}"
+      {{- end }}
+    {{- end }}
+    {{ range .map }}
+      {{- if .path }}
+    yapo.nginx/map.{{ $key }}.origin: "{{ .path }}"
+      {{- end }}
+      {{- if .first_value }}
+    yapo.nginx/map.{{ $key }}.first: "{{ printf "%s %s" .first_key .first_value }}"
+      {{- else }}
+    yapo.nginx/map.{{ $key }}.first: "{{ printf "%s %s.%s" .first_key $hostPrefix $value.host }}"
+      {{- end }}
+      {{- if .default }}
+    yapo.nginx/map.{{ $key }}.default: "{{ .default }}"
+      {{- end }}
+    {{- end }}
+  {{ end }}
+spec:
+{{- if .Values.ingress.tls }}
+  tls:
+  {{- range .Values.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+    - host: {{ printf "%s.%s" $hostPrefix .host }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ . }}
+            backend:
+              serviceName: {{ $fullName }}
+              servicePort: http
+        {{- end }}
+  {{- end }}
+{{- end }}

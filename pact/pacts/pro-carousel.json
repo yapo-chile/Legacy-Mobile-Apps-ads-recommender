@@ -24,58 +24,6 @@
                "Content-Type": "application/json"
             }
          }
-      },
-      {
-         "description": "Retrieve the user basic data",
-         "providerState": "Return poyainmo basic data",
-         "request": {
-            "method": "GET",
-            "path": "/user/basic-data",
-            "headers": {
-               "Content-Type": "application/json"
-            },
-            "query": "mail=poyainmo@mailinator.com",
-            "matchingRules": {
-               "$.query.tokens": {
-                  "match": "regex",
-                  "regex": "^.*.$"
-               }
-            }
-         },
-         "response": {
-            "status": 200,
-            "headers": {
-               "Content-Type": "application/json"
-            },
-            "body": {
-               "fullname": "Pro Inmo JF",
-               "cellphone": "994576548",
-               "gender": "male",
-               "country": "Chile",
-               "region": "Region Metropolitana",
-               "commune": "Quinta Normal"
-            },
-            "matchingRules": {
-               "$.body.fullname": {
-                  "match": "type"
-               },
-               "$.body.cellphone": {
-                  "match": "type"
-               },
-               "$.body.gender": {
-                  "match": "type"
-               },
-               "$.body.country": {
-                  "match": "type"
-               },
-               "$.body.region": {
-                  "match": "type"
-               },
-               "$.body.commune": {
-                  "match": "type"
-               }
-            }
-         }
       }
    ],
    "metadata": {
