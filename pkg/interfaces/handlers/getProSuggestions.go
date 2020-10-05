@@ -24,8 +24,8 @@ type getProSuggestionsHandlerInput struct {
 	OptionalParams []string `query:"params"`
 }
 
-// RelatedAdsOutput struct that represents presenter output. This is the
-// schema of endpoint response
+// getProSuggestionsHandlerOutput struct that represents presenter output.
+// This is the schema of endpoint response
 type getProSuggestionsHandlerOutput struct {
 	Ads []AdsOutput `json:"ads"`
 }

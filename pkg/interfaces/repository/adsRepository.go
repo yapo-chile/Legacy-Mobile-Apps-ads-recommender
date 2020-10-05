@@ -48,7 +48,7 @@ type elasticResponse struct {
 	HitsParent HitsParent `json:"hits"`
 }
 
-// NewAdsRepository return a new ads repository
+// NewAdsRepository return a new ads repositoryinstance
 func NewAdsRepository(
 	handler ElasticSearchHandler,
 	regionsConf DataMapping,
@@ -181,7 +181,7 @@ func (repo *adsRepository) getMainImage(imgs []usecases.AdMedia) domain.Image {
 	return repo.fillImage(imgs[0].ID)
 }
 
-// fillAd parse data from Ad structon usecases to Ad domain object
+// fillAd parse data from Ad struct on usecases to Ad domain object
 func (repo *adsRepository) fillAd(ad usecases.Ad) domain.Ad {
 	return domain.Ad{
 		ListID:        ad.ListID,

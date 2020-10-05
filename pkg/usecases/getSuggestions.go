@@ -6,7 +6,7 @@ import (
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
 )
 
-// GetSuggestions contains the repositories needed for execute a query to elastic search
+// GetSuggestions contains the repositories needed to retrieve ads suggestions
 type GetSuggestions struct {
 	SuggestionsRepo   AdsRepository
 	MinDisplayedAds   int
@@ -16,7 +16,7 @@ type GetSuggestions struct {
 	Logger            GetSuggestionsLogger
 }
 
-// GetSuggestionsLogger defines the logger methods that will be used for this use case
+// GetSuggestionsLogger defines the logger methods that will be used for this usecase
 type GetSuggestionsLogger interface {
 	LimitExceeded(size, maxDisplayedAds, defaultAdsQty int)
 	MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int)
@@ -27,7 +27,7 @@ type GetSuggestionsLogger interface {
 
 // GetProSuggestions search ad details using listId and returns a slice with ad objects
 // When ad with listID is found, use the parameters on this object to search ad suggestions.
-// When suggestions retrieved on repo are less than MinDisplayedAds value, itreturns empty slice.
+// When suggestions retrieved on repo are less than MinDisplayedAds value, it returns empty slice.
 // If something goes wrong returns empty slice and error.
 func (interactor *GetSuggestions) GetProSuggestions(
 	listID string, size, from int,
@@ -66,6 +66,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	return ads, nil
 }
 
+// getMustsParams returns a map with mandatory values
 func getMustsParams(ad domain.Ad) (out map[string]string) {
 	out = make(map[string]string)
 	out["Category"] = ad.Category
@@ -74,6 +75,7 @@ func getMustsParams(ad domain.Ad) (out map[string]string) {
 	return
 }
 
+// getShouldsParams returns a map with optional values
 func getShouldsParams(ad domain.Ad, suggestionsParams []string) (out map[string]string) {
 	out = make(map[string]string)
 	for _, val := range suggestionsParams {
@@ -84,6 +86,7 @@ func getShouldsParams(ad domain.Ad, suggestionsParams []string) (out map[string]
 	return
 }
 
+// getMustNotParams returns a map with excluded values
 func getMustNotParams(ad domain.Ad) (out map[string]string) {
 	out = make(map[string]string)
 	out["ListID"] = strconv.FormatInt(ad.ListID, 10)
