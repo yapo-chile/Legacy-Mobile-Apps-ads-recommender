@@ -49,9 +49,11 @@ type CauseBulk struct {
 
 // NewElasticHandlerHandler will create a new instance of a custom http request handler
 func NewElasticHandlerHandler(
-	maxIdleConns, maxIdleConnsPerHost, maxConnsPerHost, idleConnTimeout, batchSize int, searchTimeout time.Duration,
+	maxIdleConns, maxIdleConnsPerHost, maxConnsPerHost, idleConnTimeout, batchSize int,
+	searchTimeout time.Duration,
 	addresses string,
-	logger loggers.Logger) *ElasticHandler {
+	logger loggers.Logger,
+) *ElasticHandler {
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			addresses,
