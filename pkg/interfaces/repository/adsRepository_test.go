@@ -11,6 +11,9 @@ import (
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
 )
 
+const getAdTemplateName = "getAd"
+const getAdsTemplateName = "getAds"
+
 func TestNewAdsRepository(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
 	expected := &adsRepository{
@@ -24,10 +27,9 @@ func TestNewAdsRepository(t *testing.T) {
 func TestGetAdOK(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
 	mDataMapping := MockDataMapping{}
-	templateName := "getAd"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
 	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
@@ -48,10 +50,9 @@ func TestGetAdOK(t *testing.T) {
 
 func TestGetAdErr(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
-	templateName := "getAd"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdTemplateName: templateValue,
 	}
 	mHandler.On(
 		"Search",
@@ -70,10 +71,9 @@ func TestGetAdErr(t *testing.T) {
 
 func TestGetAdNotEnough(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
-	templateName := "getAd"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdTemplateName: templateValue,
 	}
 	mHandler.On(
 		"Search",
@@ -93,10 +93,9 @@ func TestGetAdNotEnough(t *testing.T) {
 func TestGetAdsOK(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
 	mDataMapping := MockDataMapping{}
-	templateName := "getAds"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdsTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
 	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
@@ -117,10 +116,9 @@ func TestGetAdsOK(t *testing.T) {
 }
 
 func TestGetAdsProcessNoTemplate(t *testing.T) {
-	templateName := "test1"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdsTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdsTemplateName: templateValue,
 	}
 	repo := adsRepository{
 		queryTemplates: templates,
@@ -129,15 +127,13 @@ func TestGetAdsProcessNoTemplate(t *testing.T) {
 	var expected []domain.Ad
 	assert.Equal(t, expected, resp)
 	assert.Error(t, err)
-
 }
 
 func TestGetAdsProcessUnmarshalErr(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
-	templateName := "test1"
-	templateValue, _ := template.New(templateName).Parse("test")
+	templateValue, _ := template.New(getAdsTemplateName).Parse("test")
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdsTemplateName: templateValue,
 	}
 	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`{`, nil)
 
@@ -145,7 +141,7 @@ func TestGetAdsProcessUnmarshalErr(t *testing.T) {
 		elasticHandler: &mHandler,
 		queryTemplates: templates,
 	}
-	resp, err := repo.getAdsProcess("test1", nil, 0, 0)
+	resp, err := repo.getAdsProcess(getAdsTemplateName, nil, 0, 0)
 	var expected []domain.Ad
 	assert.Equal(t, expected, resp)
 	assert.Error(t, err)
@@ -153,15 +149,14 @@ func TestGetAdsProcessUnmarshalErr(t *testing.T) {
 }
 
 func TestProcessTemplateErr(t *testing.T) {
-	templateName := "test1"
-	templateValue := template.New(templateName)
+	templateValue := template.New(getAdsTemplateName)
 	templates := map[string]*template.Template{
-		templateName: templateValue,
+		getAdsTemplateName: templateValue,
 	}
 	repo := adsRepository{
 		queryTemplates: templates,
 	}
-	resp, err := repo.ProcessTemplate("test1", nil)
+	resp, err := repo.ProcessTemplate(getAdsTemplateName, nil)
 	expected := ""
 	assert.Equal(t, expected, resp)
 	assert.Error(t, err)
