@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -130,37 +131,28 @@ func (repo *adsRepository) getAdsProcess(
 // getBoolParameters returns a string with bool parameters
 // to be used on a query as must, should or must_not
 func (repo *adsRepository) getBoolParameters(params map[string]string) string {
-	var boolParamsStr strings.Builder
-	counter := 0
-	if len(params) > 0 {
-		for k, v := range params {
-			if counter > 0 {
-				boolParamsStr.WriteString(`, `)
-			}
-			match := `{"match": {"%s": "%s"}}`
-			boolParamsStr.WriteString(fmt.Sprintf(match, k, v))
-			counter++
-		}
-	}
-	return boolParamsStr.String()
+	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
 // getFilters returns a string with filters
 // to be used on a query
 func (repo *adsRepository) getFilters(filters map[string]string) string {
-	var filtersStr strings.Builder
-	counter := 0
-	if len(filters) > 0 {
-		for k, v := range filters {
-			if counter > 0 {
-				filtersStr.WriteString(`, `)
+	return repo.getParams(filters, `{"term": {"%s.keyword": "%s"}}`)
+}
+
+// getParams returns a string to be used on a query
+func (repo *adsRepository) getParams(params map[string]string, condition string) string {
+	var paramsStr strings.Builder
+	if len(params) > 0 {
+		keys := sortedKeys(params)
+		for i, k := range keys {
+			if i > 0 {
+				paramsStr.WriteString(`, `)
 			}
-			filter := `{"term": {"%s.keyword": "%s"}}`
-			filtersStr.WriteString(fmt.Sprintf(filter, k, v))
-			counter++
+			paramsStr.WriteString(fmt.Sprintf(condition, k, params[k]))
 		}
 	}
-	return filtersStr.String()
+	return paramsStr.String()
 }
 
 // ProcessTemplate process the query data and returns a template as string.
@@ -241,4 +233,13 @@ func (repo *adsRepository) fillURL(subject string, listID, regionID int64) strin
 		},
 		"/",
 	)
+}
+
+func sortedKeys(m map[string]string) (keys []string) {
+	keys = make([]string, 0)
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

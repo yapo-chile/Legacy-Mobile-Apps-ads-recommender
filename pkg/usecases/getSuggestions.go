@@ -33,7 +33,6 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	listID string, size, from int,
 ) (ads []domain.Ad, err error) {
 	if size > interactor.MaxDisplayedAds {
-
 		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
 		size = interactor.RequestedAdsQty
 	}
