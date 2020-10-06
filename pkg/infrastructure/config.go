@@ -93,7 +93,7 @@ type ElasticSearchConf struct {
 	SearchResultSize    int           `env:"SEARCH_RESULT_SIZE" envDefault:"10"`
 	SearchResultPage    int           `env:"SEARCH_RESULT_PAGE" envDefault:"0"`
 	SearchTimeout       time.Duration `env:"SEARCH_TIMEOUT" envDefault:"3s"`
-	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"./resources/queries/"`
+	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"resources/queries/"`
 }
 
 // GetHeaders return map of cors used

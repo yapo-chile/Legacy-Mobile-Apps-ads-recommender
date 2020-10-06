@@ -18,6 +18,8 @@ RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && rm -rf /var/cache/apk/*
 EXPOSE 8080
 WORKDIR /home/user/app/
 COPY --from=gobuilder /app.linux .
+COPY /resources/queries/* /home/user/app/resources/queries/
+
 
 CMD ["./app.linux"]
 
