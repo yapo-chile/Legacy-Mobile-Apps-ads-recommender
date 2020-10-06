@@ -16,13 +16,12 @@ nameOverride: ""
 fullnameOverride: ""
 dontUseReleaseName: true
 
-# secrets:
-#   secret_name:
-#     env_var: secret_key
-secrets: {}
+secrets:
+  resource-elastic-index-ads:
+    ELASTIC_INDEX_ALIAS: INDEX
+    ELASTIC_HOST: HOST
+    ELASTIC_PORT: PORT
 
-# env:
-#     env_var: value
 env:
   ETCD_HOST: http://config-etcd:2397
   PRO_CAROUSEL_HEALTH_PATH: "/healthcheck"

@@ -76,7 +76,7 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.IdleConnTimeout,
 		conf.ElasticSearchConf.BatchSize,
 		conf.ElasticSearchConf.SearchTimeout,
-		conf.ElasticSearchConf.Host,
+		conf.ElasticSearchConf.Host+":"+conf.ElasticSearchConf.Port,
 		logger,
 	)
 	// Repos

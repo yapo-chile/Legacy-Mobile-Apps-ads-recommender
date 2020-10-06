@@ -83,8 +83,9 @@ type AdConf struct {
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX" envDefault:"ads_dev01"`
-	Host                string        `env:"HOST" envDefault:"http://elastic:9200"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev01"`
+	Host                string        `env:"HOST" envDefault:"http://elastic"`
+	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
 	MaxIdleConnsPerHost int           `env:"MAX_IDLE_CONNECTIONS_PER_HOST" envDefault:"10"`
 	MaxConnsPerHost     int           `env:"MAX_CONNECTIONS_PER_HOST" envDefault:"10"`
@@ -132,7 +133,7 @@ type Config struct {
 	ProCarouselClientConf ProCarouselClientConf `env:"PRO_CAROUSEL_"`
 	CorsConf              CorsConf              `env:"CORS_"`
 	InBrowserCacheConf    InBrowserCacheConf    `env:"BROWSER_CACHE_"`
-	ElasticSearchConf     ElasticSearchConf     `env:"ELASTICSEARCH_"`
+	ElasticSearchConf     ElasticSearchConf     `env:"ELASTIC_"`
 	EtcdConf              EtcdConf              `env:"ETCD_"`
 	AdConf                AdConf                `env:"AD_"`
 }
