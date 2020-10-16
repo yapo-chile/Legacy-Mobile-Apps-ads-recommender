@@ -106,7 +106,7 @@ func TestSendBroker(*testing.T) {
 	infrastructure.LoadFromEnv(&conf)
 
 	oldPactResponse, currentVer, errOld := getContractInfo(conf.BrokerHost +
-		"/pacts/provider/profile-ms/consumer/goms/latest")
+		"/pacts/provider/profile-ms/consumer/pro-carousel/latest")
 	if errOld != nil {
 		if errOld.Error() != "the error code was 404" {
 			fmt.Printf("Error getting the contract from the broker: +%v\n", errOld)

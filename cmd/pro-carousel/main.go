@@ -7,6 +7,9 @@ import (
 
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/infrastructure"
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/handlers"
+	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/loggers"
+	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/repository"
+	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
 )
 
 func main() { //nolint: funlen
@@ -45,9 +48,63 @@ func main() { //nolint: funlen
 
 	shutdownSequence.Push(prometheus)
 	logger.Info("Initializing resources")
+	regions, errorRegions := infrastructure.NewRconf(
+		conf.EtcdConf.Host,
+		conf.EtcdConf.RegionPath,
+		conf.EtcdConf.Prefix,
+		logger,
+	)
+	if errorRegions != nil {
+		logger.Error("error loading regions from etcd")
+		panic(errorRegions)
+	}
+	fileTools := infrastructure.NewFileTools(conf.ElasticSearchConf.QueryTemplates, ".tmpl")
+	queryTemplates := fileTools.LoadTemplatesFromFolder()
+	if len(queryTemplates) < 1 {
+		errStr := "query templates not found"
+		logger.Error(errStr)
+		panic(fmt.Errorf(errStr))
+	}
+	logger.Info("Loaded templates %+v", queryTemplates)
+	// interactor loggers
+	getSuggestionsLogger := loggers.MakeGetSuggestionsLogger(logger)
 
+	elasticHandler := infrastructure.NewElasticHandlerHandler(
+		conf.ElasticSearchConf.MaxIdleConns,
+		conf.ElasticSearchConf.MaxIdleConnsPerHost,
+		conf.ElasticSearchConf.MaxConnsPerHost,
+		conf.ElasticSearchConf.IdleConnTimeout,
+		conf.ElasticSearchConf.BatchSize,
+		conf.ElasticSearchConf.SearchTimeout,
+		conf.ElasticSearchConf.Host+":"+conf.ElasticSearchConf.Port,
+		logger,
+	)
+	// Repos
+	adsRepository := repository.NewAdsRepository(
+		elasticHandler,
+		regions,
+		queryTemplates,
+		conf.AdConf.ImageServerURL,
+		conf.ElasticSearchConf.Index,
+		conf.ElasticSearchConf.SearchResultSize,
+		conf.ElasticSearchConf.SearchResultPage,
+	)
+	// Interactors
+	getSuggestions := usecases.GetSuggestions{
+		SuggestionsRepo:   adsRepository,
+		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
+		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
+		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
+		SuggestionsParams: conf.AdConf.SuggestionsParams,
+		Logger:            getSuggestionsLogger,
+	}
 	// HealthHandler
 	var healthHandler handlers.HealthHandler
+	getProSuggestionsHandler := handlers.GetProSuggestionsHandler{
+		Interactor:          &getSuggestions,
+		CurrencySymbol:      conf.AdConf.CurrencySymbol,
+		UnitOfAccountSymbol: conf.AdConf.UnitOfAccountSymbol,
+	}
 
 	useBrowserCache := infrastructure.InBrowserCache{
 		MaxAge:  conf.InBrowserCacheConf.MaxAge,
@@ -73,7 +130,13 @@ func main() { //nolint: funlen
 						Handler:      &healthHandler,
 						RequestCache: "10s",
 					},
-				},
+					{
+						Name:         "Get suggestions for a specific ad",
+						Method:       "GET",
+						Pattern:      "/suggestions/{listID:.*}/pro",
+						Handler:      &getProSuggestionsHandler,
+						RequestCache: "10s",
+					}},
 			},
 		},
 	}

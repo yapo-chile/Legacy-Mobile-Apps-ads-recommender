@@ -72,18 +72,20 @@ type EtcdConf struct {
 
 // AdConf configure how to get ads and how to fill some fields
 type AdConf struct {
-	ImageServerURL         string `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
-	CurrencySymbol         string `env:"CURRENCY_SYMBOL" envDefault:"$"`
-	UnitOfAccountSymbol    string `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
-	MinDisplayedAds        int    `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
-	MaxDisplayedAds        int    `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
-	DefaultRequestedAdsQty int    `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	ImageServerURL         string   `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
+	CurrencySymbol         string   `env:"CURRENCY_SYMBOL" envDefault:"$"`
+	UnitOfAccountSymbol    string   `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
+	MinDisplayedAds        int      `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
+	MaxDisplayedAds        int      `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
+	DefaultRequestedAdsQty int      `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	SuggestionsParams      []string `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
 }
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX" envDefault:"ads_dev01"`
-	Host                string        `env:"HOST" envDefault:"http://elastic:9200"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev01"`
+	Host                string        `env:"HOST" envDefault:"http://elastic"`
+	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
 	MaxIdleConnsPerHost int           `env:"MAX_IDLE_CONNECTIONS_PER_HOST" envDefault:"10"`
 	MaxConnsPerHost     int           `env:"MAX_CONNECTIONS_PER_HOST" envDefault:"10"`
@@ -92,7 +94,7 @@ type ElasticSearchConf struct {
 	SearchResultSize    int           `env:"SEARCH_RESULT_SIZE" envDefault:"10"`
 	SearchResultPage    int           `env:"SEARCH_RESULT_PAGE" envDefault:"0"`
 	SearchTimeout       time.Duration `env:"SEARCH_TIMEOUT" envDefault:"3s"`
-	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"./resources/queries/"`
+	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"resources/queries/"`
 }
 
 // GetHeaders return map of cors used
@@ -131,7 +133,7 @@ type Config struct {
 	ProCarouselClientConf ProCarouselClientConf `env:"PRO_CAROUSEL_"`
 	CorsConf              CorsConf              `env:"CORS_"`
 	InBrowserCacheConf    InBrowserCacheConf    `env:"BROWSER_CACHE_"`
-	ElasticSearchConf     ElasticSearchConf     `env:"ELASTICSEARCH_"`
+	ElasticSearchConf     ElasticSearchConf     `env:"ELASTIC_"`
 	EtcdConf              EtcdConf              `env:"ETCD_"`
 	AdConf                AdConf                `env:"AD_"`
 }
@@ -195,6 +197,9 @@ func load(conf reflect.Value, envTag, envDefault string) { //nolint: gocyclo, go
 				if value, err := strconv.ParseFloat(value, 64); err == nil {
 					reflectedConf.Set(reflect.ValueOf(value))
 				}
+			case []string:
+				values := strings.Split(value, ",")
+				reflectedConf.Set(reflect.ValueOf(values))
 			case string:
 				reflectedConf.Set(reflect.ValueOf(value))
 			case bool:

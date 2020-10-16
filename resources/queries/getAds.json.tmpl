@@ -4,6 +4,7 @@
 			"query": {
 				"bool": {
 					"must": [{{.Musts}}],
+					"must_not": [{{.MustsNot}}],
 					"should": [{{.Shoulds}}], 
 					"filter": [{{.Filters}}]
 				}
