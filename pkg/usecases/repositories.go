@@ -10,3 +10,8 @@ type AdsRepository interface {
 		size, from int,
 	) ([]domain.Ad, error)
 }
+
+// AdContactRepo implements ad contact repository functions
+type AdContactRepo interface {
+	GetAdsPhone(ads []domain.Ad) (phones map[string]string, err error)
+}

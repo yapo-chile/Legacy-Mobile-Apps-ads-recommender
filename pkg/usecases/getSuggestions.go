@@ -2,13 +2,19 @@ package usecases
 
 import (
 	"strconv"
+	"strings"
 
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
+)
+
+const (
+	contactField = "phonelink"
 )
 
 // GetSuggestions contains the repositories needed to retrieve ads suggestions
 type GetSuggestions struct {
 	SuggestionsRepo   AdsRepository
+	AdContact         AdContactRepo
 	MinDisplayedAds   int
 	RequestedAdsQty   int
 	MaxDisplayedAds   int
@@ -30,7 +36,7 @@ type GetSuggestionsLogger interface {
 // When suggestions retrieved on repo are less than MinDisplayedAds value, it returns empty slice.
 // If something goes wrong returns empty slice and error.
 func (interactor *GetSuggestions) GetProSuggestions(
-	listID string, size, from int,
+	listID string, optionalParams []string, size, from int,
 ) (ads []domain.Ad, err error) {
 	if size > interactor.MaxDisplayedAds {
 		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
@@ -63,7 +69,34 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.NotEnoughAds(listID, len(ads))
 		return []domain.Ad{}, nil
 	}
-	return ads, nil
+
+	return interactor.getAdsContact(ads, optionalParams)
+}
+
+// getAdsContact if phonelink is required connect to adContact repo
+// and gets ads contact data.
+func (interactor *GetSuggestions) getAdsContact(
+	suggestions []domain.Ad,
+	optionalParams []string,
+) (ads []domain.Ad, err error) {
+	phones := make(map[string]string)
+	for _, param := range optionalParams {
+		if strings.EqualFold(param, contactField) {
+			phones, err = interactor.AdContact.GetAdsPhone(suggestions)
+			break
+		}
+	}
+	if len(phones) > 0 {
+		for _, ad := range suggestions {
+			if val, ok := phones[strconv.FormatInt(ad.ListID, 10)]; ok {
+				if ad.AdParams == nil {
+					ad.AdParams = make(map[string]string)
+				}
+				ad.AdParams[contactField] = val
+			}
+		}
+	}
+	return suggestions, err
 }
 
 // getMustsParams returns a map with mandatory values
