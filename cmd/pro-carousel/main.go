@@ -144,11 +144,10 @@ func main() { //nolint: funlen
 				Prefix: "",
 				Groups: []infrastructure.Route{
 					{
-						Name:         "Check service health",
-						Method:       "GET",
-						Pattern:      "/healthcheck",
-						Handler:      &healthHandler,
-						RequestCache: "1s",
+						Name:    "Check service health",
+						Method:  "GET",
+						Pattern: "/healthcheck",
+						Handler: &healthHandler,
 					},
 					{
 						Name:         "Get suggestions for a specific ad",

@@ -1,7 +1,8 @@
 package domain
 
 import (
-	"reflect"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -32,22 +33,37 @@ type Ad struct {
 	AdParams      map[string]string
 }
 
-func (ad *Ad) GetAllFields() (output map[string]interface{}) {
-	val := reflect.ValueOf(ad).Elem()
-	output = make(map[string]interface{})
-	for i := 0; i < val.Type().NumField(); i++ {
-		if val.Type().Field(i).Name == "AdParams" {
-			for key, val := range ad.AdParams {
-				if output[strings.ToLower(key)] == nil ||
-					reflect.ValueOf(output[strings.ToLower(key)]).IsZero() {
-					output[strings.ToLower(key)] = val
-				}
-			}
-		} else {
-			output[strings.ToLower(val.Type().Field(i).Name)] = val.Field(i)
+// GetFieldsMap returns a map with all fields and values
+func (ad *Ad) GetFieldsMapString() (output map[string]string) {
+	output = map[string]string{
+		"listid":        strconv.FormatInt(ad.ListID, 10),
+		"categoryid":    strconv.FormatInt(ad.CategoryID, 10),
+		"communeid":     strconv.FormatInt(ad.CommuneID, 10),
+		"regionid":      strconv.FormatInt(ad.RegionID, 10),
+		"userid":        strconv.FormatInt(ad.UserID, 10),
+		"type":          ad.Type,
+		"phone":         ad.Phone,
+		"region":        ad.Region,
+		"commune":       ad.Commune,
+		"category":      ad.Category,
+		"subcategory":   ad.SubCategory,
+		"name":          ad.Name,
+		"subject":       ad.Subject,
+		"body":          ad.Body,
+		"price":         fmt.Sprintf("%g", ad.Price),
+		"oldprice":      fmt.Sprintf("%g", ad.OldPrice),
+		"currency":      ad.Currency,
+		"listtime":      ad.ListTime.Format("2006-01-02 15:04:05"),
+		"url":           ad.URL,
+		"publishertype": string(ad.PublisherType),
+	}
+	for key, val := range ad.AdParams {
+		key = strings.ToLower(key)
+		if output[key] == "" {
+			output[key] = val
 		}
 	}
-	return output
+	return
 }
 
 // Image struct that defines the internal structure of ad images

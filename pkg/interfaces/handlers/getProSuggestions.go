@@ -186,17 +186,19 @@ func (h *GetProSuggestionsHandler) setOutput(
 	ads []domain.Ad, optionalParams []string,
 ) (out getProSuggestionsHandlerOutput) {
 	for _, ad := range ads {
+		// get a map with all params on ads as string
+		params := ad.GetFieldsMapString()
 		adOutTemp := AdsOutput{
-			ListID: strconv.FormatInt(ad.ListID, 10),
-			Title:  ad.Subject,
+			ListID: params["listid"],
+			Title:  params["subject"],
 			Price:  ad.Price,
-			Date:   ad.ListTime.Format("2006-01-02 15:04:05"),
+			Date:   params["listtime"],
 			Image: imageOutput{
 				Full:   ad.Image.Full,
 				Medium: ad.Image.Medium,
 				Small:  ad.Image.Small,
 			},
-			URL: ad.URL,
+			URL: params["url"],
 		}
 		if ad.Currency == "uf" {
 			adOutTemp.Currency = h.UnitOfAccountSymbol
@@ -204,31 +206,32 @@ func (h *GetProSuggestionsHandler) setOutput(
 		} else {
 			adOutTemp.Currency = h.CurrencySymbol
 		}
+
 		// set optional params
-		params := ad.GetAllFields()
-		for _, param := range optionalParams {
-			if val, ok := params[strings.ToLower(param)]; ok {
-				if value := fmt.Sprintf("%v", val); value != "" {
-					adOutTemp.addOptionalParam(param, value)
+		for _, optionalParam := range optionalParams {
+			optionalParam = strings.ToLower(optionalParam)
+			if val, ok := params[optionalParam]; ok {
+				if val != "" {
+					adOutTemp.addOptionalParam(optionalParam, val)
 				}
 			}
-			if strings.ToLower(param) == "publishertype" {
+			if optionalParam == "publishertype" {
 				adOutTemp.PublisherType = string(ad.PublisherType)
 			}
-			if strings.ToLower(param) == "region" {
+			if optionalParam == "region" {
 				adOutTemp.Region = strconv.FormatInt(ad.RegionID, 10)
 				adOutTemp.SetRegion(h.Regions)
 			}
-			if strings.ToLower(param) == "communes" {
+			if optionalParam == "communes" {
 				adOutTemp.Communes = strconv.FormatInt(ad.CommuneID, 10)
 				adOutTemp.CommunesDescription = ad.Commune
 			}
-			if strings.ToLower(param) == "type" {
+			if optionalParam == "type" {
 				if adOutTemp.Type != "" {
 					adOutTemp.Type = strings.ToLower(string(adOutTemp.Type[0]))
 				}
 			}
-			if strings.ToLower(param) == "category" {
+			if optionalParam == "category" {
 				adOutTemp.Category = strconv.FormatInt(ad.CategoryID, 10)
 				adOutTemp.SetCategory(h.Categories)
 			}
