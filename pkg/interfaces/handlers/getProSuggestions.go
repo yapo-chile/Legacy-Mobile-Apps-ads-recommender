@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -11,11 +12,18 @@ import (
 	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
 )
 
+// DataMapping allows get specific configuration params from etcd
+type DataMapping interface {
+	Get(string) string
+}
+
 // GetProSuggestionsHandler implements the handler interface and responds to
 type GetProSuggestionsHandler struct {
 	Interactor          usecases.GetSuggestionsInteractor
 	CurrencySymbol      string
 	UnitOfAccountSymbol string
+	Regions             DataMapping
+	Categories          DataMapping
 }
 
 type getProSuggestionsHandlerInput struct {
@@ -41,6 +49,7 @@ type AdsOutput struct {
 	Region              string      `json:"region,omitempty"`
 	RegionDescription   string      `json:"regionDescription,omitempty"`
 	Communes            string      `json:"communes,omitempty"`
+	CommunesDescription string      `json:"communesDescription,omitempty"`
 	Date                string      `json:"date,omitempty"`
 	Description         string      `json:"body,omitempty"`
 	Category            string      `json:"category,omitempty"`
@@ -106,6 +115,37 @@ func (output *AdsOutput) setField(name, value string) bool {
 	return false
 }
 
+// SetRegion gets region label on Config
+func (output *AdsOutput) SetRegion(regions DataMapping) {
+	if output.Region != "" {
+		if regionID, err := strconv.ParseInt(output.Region, 10, 64); err == nil {
+			output.RegionDescription = regions.Get(
+				fmt.Sprintf(
+					"region.%d.name",
+					regionID,
+				),
+			)
+		}
+	}
+}
+
+// SetCategory getscategory and maincategory labels on Config
+func (output *AdsOutput) SetCategory(categories DataMapping) {
+	if output.Category != "" {
+		if categoryID, err := strconv.ParseInt(output.Category, 10, 64); err == nil {
+			categoryDescription := categories.Get(fmt.Sprintf("%d", categoryID))
+			mainCategoryID := (categoryID / 1000) * 1000
+			// check if category has a main category
+			if categoryID != mainCategoryID {
+				mainCategoryDescription := categories.Get(fmt.Sprintf("%d", mainCategoryID))
+				output.CategoryDescription = fmt.Sprintf("%s > %s", mainCategoryDescription, categoryDescription)
+			} else {
+				output.CategoryDescription = categoryDescription
+			}
+		}
+	}
+}
+
 // Input returns a fresh, empty instance of getProSuggestionsHandlerInput
 func (*GetProSuggestionsHandler) Input(ir InputRequest) HandlerInput {
 	input := getProSuggestionsHandlerInput{}
@@ -120,7 +160,7 @@ func (h *GetProSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
 		return err
 	}
 	in := input.(*getProSuggestionsHandlerInput)
-	results, errSuggestions := h.Interactor.GetProSuggestions(in.ListID, in.Limit, 0)
+	results, errSuggestions := h.Interactor.GetProSuggestions(in.ListID, in.OptionalParams, in.Limit, 0)
 	if errSuggestions != nil {
 		return &goutils.Response{
 			Code: http.StatusInternalServerError,
@@ -146,10 +186,10 @@ func (h *GetProSuggestionsHandler) setOutput(
 ) (out getProSuggestionsHandlerOutput) {
 	for _, ad := range ads {
 		adOutTemp := AdsOutput{
-			ListID:   strconv.FormatInt(ad.ListID, 10),
-			Title:    ad.Subject,
-			Price:    ad.Price,
-			Category: strconv.FormatInt(ad.CategoryID, 10),
+			ListID: strconv.FormatInt(ad.ListID, 10),
+			Title:  ad.Subject,
+			Price:  ad.Price,
+			Date:   ad.ListTime.Format("2006-01-02 15:04:05"),
 			Image: imageOutput{
 				Full:   ad.Image.Full,
 				Medium: ad.Image.Medium,
@@ -164,25 +204,35 @@ func (h *GetProSuggestionsHandler) setOutput(
 			adOutTemp.Currency = h.CurrencySymbol
 		}
 		// set optional params
-		adParams := keyMapToLower(ad.AdParams)
+		params := ad.GetAllFields()
 		for _, param := range optionalParams {
-			if val, ok := adParams[strings.ToLower(param)]; ok {
-				adOutTemp.addOptionalParam(param, val)
+			if val, ok := params[strings.ToLower(param)]; ok {
+				if value := fmt.Sprintf("%v", val); value != "" {
+					adOutTemp.addOptionalParam(param, value)
+				}
 			}
 			if strings.ToLower(param) == "publishertype" {
 				adOutTemp.PublisherType = string(ad.PublisherType)
+			}
+			if strings.ToLower(param) == "region" {
+				adOutTemp.Region = strconv.FormatInt(ad.RegionID, 10)
+				adOutTemp.SetRegion(h.Regions)
+			}
+			if strings.ToLower(param) == "communes" {
+				adOutTemp.Communes = strconv.FormatInt(ad.CommuneID, 10)
+				adOutTemp.CommunesDescription = ad.Commune
+			}
+			if strings.ToLower(param) == "type" {
+				if adOutTemp.Type != "" {
+					adOutTemp.Type = strings.ToLower(string(adOutTemp.Type[0]))
+				}
+			}
+			if strings.ToLower(param) == "category" {
+				adOutTemp.Category = strconv.FormatInt(ad.CategoryID, 10)
+				adOutTemp.SetCategory(h.Categories)
 			}
 		}
 		out.Ads = append(out.Ads, adOutTemp)
 	}
 	return out
-}
-
-// keyMapToLower returns a new map with lower keys
-func keyMapToLower(m map[string]string) (out map[string]string) {
-	out = make(map[string]string)
-	for key, val := range m {
-		out[strings.ToLower(key)] = val
-	}
-	return
 }

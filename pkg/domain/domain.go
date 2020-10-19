@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -28,6 +30,24 @@ type Ad struct {
 	Image         Image
 	PublisherType PublisherType
 	AdParams      map[string]string
+}
+
+func (ad *Ad) GetAllFields() (output map[string]interface{}) {
+	val := reflect.ValueOf(ad).Elem()
+	output = make(map[string]interface{})
+	for i := 0; i < val.Type().NumField(); i++ {
+		if val.Type().Field(i).Name == "AdParams" {
+			for key, val := range ad.AdParams {
+				if output[strings.ToLower(key)] == nil ||
+					reflect.ValueOf(output[strings.ToLower(key)]).IsZero() {
+					output[strings.ToLower(key)] = val
+				}
+			}
+		} else {
+			output[strings.ToLower(val.Type().Field(i).Name)] = val.Field(i)
+		}
+	}
+	return output
 }
 
 // Image struct that defines the internal structure of ad images
