@@ -129,7 +129,8 @@ func (output *AdsOutput) SetRegion(regions DataMapping) {
 	}
 }
 
-// SetCategory getscategory and maincategory labels on Config
+// SetCategory it gets category and main category labels on DataMapping
+// and sets on Category field
 func (output *AdsOutput) SetCategory(categories DataMapping) {
 	if output.Category != "" {
 		if categoryID, err := strconv.ParseInt(output.Category, 10, 64); err == nil {
