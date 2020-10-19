@@ -44,6 +44,17 @@ func (m *mockAdsRepository) GetAds(
 	return args.Get(0).([]domain.Ad), args.Error(1)
 }
 
+type mockAdContactRepository struct {
+	mock.Mock
+}
+
+func (m *mockAdContactRepository) GetAdsPhone(
+	suggestions []domain.Ad,
+) (adsResult map[string]string, err error) {
+	args := m.Called(suggestions)
+	return args.Get(0).(map[string]string), args.Error(1)
+}
+
 func TestGetProSuggestionsOK(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	ad := domain.Ad{ListID: 1, Category: "test"}
@@ -56,7 +67,7 @@ func TestGetProSuggestionsOK(t *testing.T) {
 		MaxDisplayedAds: 1,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", 1, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 1, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -78,7 +89,7 @@ func TestGetProSuggestionsMaxDisplayedAds(t *testing.T) {
 		Logger:          &mLogger,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", 2, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 2, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -101,7 +112,7 @@ func TestGetProSuggestionsMinDisplayedAds(t *testing.T) {
 		Logger:          &mLogger,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", 1, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 1, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -124,7 +135,7 @@ func TestGetProSuggestionsNotEnoughAds(t *testing.T) {
 		Logger:          &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", 2, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 2, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -143,7 +154,7 @@ func TestGetProSuggestionsGetAdErr(t *testing.T) {
 		Logger:          &mLogger,
 	}
 	var expected []domain.Ad
-	output, err := i.GetProSuggestions("1", 1, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 1, 0)
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -165,11 +176,34 @@ func TestGetProSuggestionsGetAdsErr(t *testing.T) {
 		Logger:          &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", 1, 0)
+	output, err := i.GetProSuggestions("1", []string{}, 1, 0)
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
+}
+
+func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
+	mAdsRepo := mockAdsRepository{}
+	mAdContactRepo := mockAdContactRepository{}
+	ad := domain.Ad{ListID: 1, Category: "test"}
+	ads := []domain.Ad{{ListID: 2, Category: "test"}}
+	phones := map[string]string{"2": "998765432"}
+	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, nil)
+	i := GetSuggestions{
+		SuggestionsRepo: &mAdsRepo,
+		AdContact:       &mAdContactRepo,
+		MinDisplayedAds: 1,
+		MaxDisplayedAds: 2,
+	}
+	expected := ads
+	output, err := i.GetProSuggestions("1", []string{"phonelink"}, 1, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, output)
+	mAdsRepo.AssertExpectations(t)
+	mAdContactRepo.AssertExpectations(t)
 }
 
 func TestGetShouldsParamsOK(t *testing.T) {
