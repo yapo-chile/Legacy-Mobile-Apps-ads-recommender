@@ -28,6 +28,9 @@ func (m *mockGetSuggestionsLogger) ErrorGettingAds(musts, shoulds, mustsNot map[
 func (m *mockGetSuggestionsLogger) NotEnoughAds(listID string, lenAds int) {
 	m.Called(listID, lenAds)
 }
+func (m *mockGetSuggestionsLogger) WarnGettingAdsContact(listID string, err error) {
+	m.Called(listID, err)
+}
 
 type mockAdsRepository struct {
 	mock.Mock
@@ -204,6 +207,33 @@ func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mAdContactRepo.AssertExpectations(t)
+}
+
+func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
+	mAdsRepo := mockAdsRepository{}
+	mAdContactRepo := mockAdContactRepository{}
+	mLogger := mockGetSuggestionsLogger{}
+	ad := domain.Ad{ListID: 1, Category: "test"}
+	ads := []domain.Ad{{ListID: 2, Category: "test"}}
+	phones := map[string]string{"2": "998765432"}
+	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, fmt.Errorf("error"))
+	mLogger.On("WarnGettingAdsContact", mock.Anything, mock.Anything)
+	i := GetSuggestions{
+		SuggestionsRepo: &mAdsRepo,
+		AdContact:       &mAdContactRepo,
+		MinDisplayedAds: 1,
+		MaxDisplayedAds: 2,
+		Logger:          &mLogger,
+	}
+	expected := ads
+	output, err := i.GetProSuggestions("1", []string{"phonelink"}, 1, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, output)
+	mAdsRepo.AssertExpectations(t)
+	mAdContactRepo.AssertExpectations(t)
+	mLogger.AssertExpectations(t)
 }
 
 func TestGetShouldsParamsOK(t *testing.T) {
