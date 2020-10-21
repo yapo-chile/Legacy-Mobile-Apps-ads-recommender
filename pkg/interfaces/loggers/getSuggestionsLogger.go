@@ -32,6 +32,10 @@ func (l *getSuggestionsLogger) NotEnoughAds(listID string, lenAds int) {
 	l.logger.Info("cannot get enough ads using listID, just got %d ads", listID, lenAds)
 }
 
+func (l *getSuggestionsLogger) ErrorGettingAdsContact(listID string, err error) {
+	l.logger.Error("cannot get ads contact with listID %s with error: %+v", listID, err)
+}
+
 // MakeGetSuggestionsLogger sets up a GetSuggestionsLogger instrumented
 // via the provided logger
 func MakeGetSuggestionsLogger(logger Logger) usecases.GetSuggestionsLogger {
