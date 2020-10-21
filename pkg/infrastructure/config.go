@@ -68,6 +68,7 @@ type EtcdConf struct {
 	LastUpdate string `env:"LAST_UPDATE" envDefault:"/last_update"`
 	Prefix     string `env:"PREFIX" envDefault:"/v2/keys"`
 	RegionPath string `env:"REGION_PATH" envDefault:"/public/location/regions.json"`
+	Categories string `env:"CATEGORIES" envDefault:"/public/categories.json"`
 }
 
 // AdConf configure how to get ads and how to fill some fields
@@ -79,6 +80,7 @@ type AdConf struct {
 	MaxDisplayedAds        int      `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
 	DefaultRequestedAdsQty int      `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
 	SuggestionsParams      []string `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
+	ContactPath            string   `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"`
 }
 
 // ElasticSearchConf configuration for the elastic search client

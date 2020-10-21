@@ -54,6 +54,18 @@ func main() { //nolint: funlen
 		conf.EtcdConf.Prefix,
 		logger,
 	)
+	categories, errorCategories := infrastructure.NewRconf(
+		conf.EtcdConf.Host,
+		conf.EtcdConf.Categories,
+		conf.EtcdConf.Prefix,
+		logger,
+	)
+
+	if errorCategories != nil {
+		logger.Error("error loading categories from etcd")
+		panic(errorCategories)
+	}
+
 	if errorRegions != nil {
 		logger.Error("error loading regions from etcd")
 		panic(errorRegions)
@@ -69,6 +81,7 @@ func main() { //nolint: funlen
 	// interactor loggers
 	getSuggestionsLogger := loggers.MakeGetSuggestionsLogger(logger)
 
+	// Infrastructure
 	elasticHandler := infrastructure.NewElasticHandlerHandler(
 		conf.ElasticSearchConf.MaxIdleConns,
 		conf.ElasticSearchConf.MaxIdleConnsPerHost,
@@ -79,6 +92,8 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.Host+":"+conf.ElasticSearchConf.Port,
 		logger,
 	)
+	HTTPHandler := infrastructure.NewHTTPHandler(logger)
+
 	// Repos
 	adsRepository := repository.NewAdsRepository(
 		elasticHandler,
@@ -89,9 +104,12 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.SearchResultSize,
 		conf.ElasticSearchConf.SearchResultPage,
 	)
+	adContactRepo := repository.NewAdContactRepository(HTTPHandler, conf.AdConf.ContactPath)
+
 	// Interactors
 	getSuggestions := usecases.GetSuggestions{
 		SuggestionsRepo:   adsRepository,
+		AdContact:         adContactRepo,
 		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
 		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
 		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
@@ -104,6 +122,8 @@ func main() { //nolint: funlen
 		Interactor:          &getSuggestions,
 		CurrencySymbol:      conf.AdConf.CurrencySymbol,
 		UnitOfAccountSymbol: conf.AdConf.UnitOfAccountSymbol,
+		Regions:             regions,
+		Categories:          categories,
 	}
 
 	useBrowserCache := infrastructure.InBrowserCache{
@@ -124,11 +144,10 @@ func main() { //nolint: funlen
 				Prefix: "",
 				Groups: []infrastructure.Route{
 					{
-						Name:         "Check service health",
-						Method:       "GET",
-						Pattern:      "/healthcheck",
-						Handler:      &healthHandler,
-						RequestCache: "10s",
+						Name:    "Check service health",
+						Method:  "GET",
+						Pattern: "/healthcheck",
+						Handler: &healthHandler,
 					},
 					{
 						Name:         "Get suggestions for a specific ad",

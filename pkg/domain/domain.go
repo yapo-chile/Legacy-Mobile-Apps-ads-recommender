@@ -1,6 +1,9 @@
 package domain
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,6 +31,39 @@ type Ad struct {
 	Image         Image
 	PublisherType PublisherType
 	AdParams      map[string]string
+}
+
+// GetFieldsMap returns a map with all fields and values
+func (ad *Ad) GetFieldsMapString() (output map[string]string) {
+	output = map[string]string{
+		"listid":        strconv.FormatInt(ad.ListID, 10),
+		"categoryid":    strconv.FormatInt(ad.CategoryID, 10),
+		"communeid":     strconv.FormatInt(ad.CommuneID, 10),
+		"regionid":      strconv.FormatInt(ad.RegionID, 10),
+		"userid":        strconv.FormatInt(ad.UserID, 10),
+		"type":          ad.Type,
+		"phone":         ad.Phone,
+		"region":        ad.Region,
+		"commune":       ad.Commune,
+		"category":      ad.Category,
+		"subcategory":   ad.SubCategory,
+		"name":          ad.Name,
+		"subject":       ad.Subject,
+		"body":          ad.Body,
+		"price":         fmt.Sprintf("%g", ad.Price),
+		"oldprice":      fmt.Sprintf("%g", ad.OldPrice),
+		"currency":      ad.Currency,
+		"listtime":      ad.ListTime.Format("2006-01-02 15:04:05"),
+		"url":           ad.URL,
+		"publishertype": string(ad.PublisherType),
+	}
+	for key, val := range ad.AdParams {
+		key = strings.ToLower(key)
+		if output[key] == "" {
+			output[key] = val
+		}
+	}
+	return
 }
 
 // Image struct that defines the internal structure of ad images
