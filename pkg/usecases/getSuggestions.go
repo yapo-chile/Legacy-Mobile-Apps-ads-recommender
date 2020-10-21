@@ -29,7 +29,7 @@ type GetSuggestionsLogger interface {
 	ErrorGettingAd(listID string, err error)
 	ErrorGettingAds(musts, shoulds, mustsNot map[string]string, err error)
 	NotEnoughAds(listID string, lenAds int)
-	WarnGettingAdsContact(listID string, err error)
+	ErrorGettingAdsContact(listID string, err error)
 }
 
 // GetProSuggestions search ad details using listId and returns a slice with ad objects
@@ -72,7 +72,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	}
 	ads, err = interactor.getAdsContact(ads, optionalParams)
 	if err != nil {
-		interactor.Logger.WarnGettingAdsContact(listID, err)
+		interactor.Logger.ErrorGettingAdsContact(listID, err)
 	}
 	return ads, nil
 }

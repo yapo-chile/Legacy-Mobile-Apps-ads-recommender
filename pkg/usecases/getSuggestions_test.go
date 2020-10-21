@@ -28,7 +28,7 @@ func (m *mockGetSuggestionsLogger) ErrorGettingAds(musts, shoulds, mustsNot map[
 func (m *mockGetSuggestionsLogger) NotEnoughAds(listID string, lenAds int) {
 	m.Called(listID, lenAds)
 }
-func (m *mockGetSuggestionsLogger) WarnGettingAdsContact(listID string, err error) {
+func (m *mockGetSuggestionsLogger) ErrorGettingAdsContact(listID string, err error) {
 	m.Called(listID, err)
 }
 
@@ -219,7 +219,7 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
 	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, fmt.Errorf("error"))
-	mLogger.On("WarnGettingAdsContact", mock.Anything, mock.Anything)
+	mLogger.On("ErrorGettingAdsContact", mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo: &mAdsRepo,
 		AdContact:       &mAdContactRepo,
