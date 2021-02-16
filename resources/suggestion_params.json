@@ -1,0 +1,10 @@
+{
+	"post_adreply_inmo": {
+		"must": ["RegionID","CommuneID","CategoryID"],
+		"should": ["EstateType","Currency","Rooms"]
+	},
+	"default": {
+		"must": ["Category","SubCategory"],
+		"should": ["BrandID","ModelID","Regdate","Brand","Model"]
+	}
+}

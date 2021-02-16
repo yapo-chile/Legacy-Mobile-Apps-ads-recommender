@@ -106,6 +106,14 @@ func main() { //nolint: funlen
 	)
 	adContactRepo := repository.NewAdContactRepository(HTTPHandler, conf.AdConf.ContactPath)
 
+	if err := infrastructure.LoadJSONFromFile(
+		conf.ResourcesConf.SuggestionsParamsURL,
+		&conf.AdConf.SuggestionsParams,
+	); err != nil {
+		panic(fmt.Sprintf("error loading allowed message text file: %s", err.Error()))
+	}
+	logger.Info("SuggestionsParams %+v", conf.AdConf.SuggestionsParams)
+
 	// Interactors
 	getSuggestions := usecases.GetSuggestions{
 		SuggestionsRepo:   adsRepository,
@@ -113,7 +121,7 @@ func main() { //nolint: funlen
 		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
 		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
 		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
-		SuggestionsParams: conf.AdConf.SuggestionsParams,
+		SuggestionsParams: conf.AdConf.OldSuggestionsParams,
 		Logger:            getSuggestionsLogger,
 	}
 	// HealthHandler
