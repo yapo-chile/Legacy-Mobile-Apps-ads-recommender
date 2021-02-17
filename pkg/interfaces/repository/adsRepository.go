@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -96,7 +95,6 @@ func (repo *adsRepository) GetAds(
 		"Shoulds":  repo.getBoolParameters(shoulds),
 		"Filters":  repo.getFilters(filters),
 	}
-	log.Printf("params %v", params)
 	return repo.getAdsProcess("getAds", params, size, from)
 }
 
@@ -143,11 +141,6 @@ func (repo *adsRepository) getRangesParameters(params map[string]map[string]int)
 	b, _ := json.Marshal(params)
 	return fmt.Sprintf(`{"range": %s}`, string(b))
 }
-
-// getRange
-/*func (repo *adsRepository) getRange(params map[string]string) string {
-	return repo.getParams(params, `{"%s": "%s"}`)
-}*/
 
 // getFilters returns a string with filters
 // to be used on a query

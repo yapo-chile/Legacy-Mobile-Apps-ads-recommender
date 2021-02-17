@@ -141,10 +141,11 @@ func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{
 // getShouldsParams returns a map with optional values
 func getShouldsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
 	out = make(map[string]string)
+	adMap := ad.GetFieldsMapString()
 	for _, val := range suggestionsParams["default"]["should"] {
 		v := val.(string)
-		if ad.AdParams[v] != "" {
-			out[v] = ad.AdParams[v]
+		if adMap[strings.ToLower(v)] != "" {
+			out[v] = adMap[strings.ToLower(v)]
 		}
 	}
 	return
