@@ -89,9 +89,9 @@ func (repo *adsRepository) GetAds(
 	musts, shoulds, mustsNot, filters map[string]string,
 	ranges map[string]map[string]int, size, from int,
 ) (ads []domain.Ad, err error) {
-	b, _ := json.Marshal(ranges)
+	mustsParams := []string{repo.getBoolParameters(musts), repo.getRangesParameters(ranges)}
 	params := map[string]string{
-		"Musts":    fmt.Sprintf(`%s,{"range":%s}`, repo.getBoolParameters(musts), string(b)),
+		"Musts":    strings.Join(mustsParams, ","),
 		"MustsNot": repo.getBoolParameters(mustsNot),
 		"Shoulds":  repo.getBoolParameters(shoulds),
 		"Filters":  repo.getFilters(filters),
@@ -138,15 +138,14 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
-// getRanges
-/*func (repo *adsRepository) getRanges(params map[string]map[string]string) string {
-	for _, v := range params {
-		repo.getRange(v, `{"%s": %s}`)
-	}
+// getRangesParameters
+func (repo *adsRepository) getRangesParameters(params map[string]map[string]int) string {
+	b, _ := json.Marshal(params)
+	return fmt.Sprintf(`{"range": %s}`, string(b))
 }
 
 // getRange
-func (repo *adsRepository) getRange(params map[string]string) string {
+/*func (repo *adsRepository) getRange(params map[string]string) string {
 	return repo.getParams(params, `{"%s": "%s"}`)
 }*/
 
