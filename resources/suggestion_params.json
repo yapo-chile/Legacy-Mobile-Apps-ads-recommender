@@ -6,11 +6,11 @@
 	"default": {
 		"must": ["Category","SubCategory"],
 		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
-          	"range": [{
-            		"Price": {
-              			"gte": 1000,
-              			"lte": 200000000
-            		}
+		"range": [{
+			"Price": {
+				"gte": 10000000000,
+				"lte": 10000000001
+			}
 		}]
 	}
 }

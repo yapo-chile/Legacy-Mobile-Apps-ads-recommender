@@ -1,7 +1,6 @@
 package usecases
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
@@ -54,13 +53,13 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
-	getRange(ad, interactor.SuggestionsParams)
-	return
+	rangeParameters := getRange(ad, interactor.SuggestionsParams)
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams)
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams)
 	mustNotParameters := getMustNotParams(ad)
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		mustParameters, shouldParameters, mustNotParameters, map[string]string{},
+		rangeParameters,
 		size, from,
 	)
 
@@ -121,18 +120,19 @@ func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]inte
 }
 
 // getRange returns a map with range values
-func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]domain.Range) {
-	out = make(map[string]domain.Range)
+func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]map[string]int) {
+	out = make(map[string]map[string]int)
 	//adMap := ad.GetFieldsMapString()
+	// lista de rangos
 	for _, val := range suggestionsParams["default"]["range"] {
 		v := val.(map[string]interface{})
-		//log.Printf("val %+v", val)
-		for _, valor := range v {
-			vlr := valor.(map[string]int)
-			//log.Printf("llave %+v", llave)
-			//log.Printf("valor %+v", valor)
-			//out[llave] = valor.(domain.Range)
-			log.Printf("vlr %+v", vlr)
+		for rangeKey, lim := range v {
+			rng := make(map[string]int)
+
+			for lk, lv := range lim.(map[string]interface{}) {
+				rng[lk] = int(lv.(float64))
+				out[rangeKey] = rng
+			}
 		}
 	}
 	return

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -85,14 +86,17 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	musts, shoulds, mustsNot, filters map[string]string, size, from int,
+	musts, shoulds, mustsNot, filters map[string]string,
+	ranges map[string]map[string]int, size, from int,
 ) (ads []domain.Ad, err error) {
+	b, _ := json.Marshal(ranges)
 	params := map[string]string{
-		"Musts":    repo.getBoolParameters(musts),
+		"Musts":    fmt.Sprintf(`%s,{"range":%s}`, repo.getBoolParameters(musts), string(b)),
 		"MustsNot": repo.getBoolParameters(mustsNot),
 		"Shoulds":  repo.getBoolParameters(shoulds),
 		"Filters":  repo.getFilters(filters),
 	}
+	log.Printf("params %v", params)
 	return repo.getAdsProcess("getAds", params, size, from)
 }
 
