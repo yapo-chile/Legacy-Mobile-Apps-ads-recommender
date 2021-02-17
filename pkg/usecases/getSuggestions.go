@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -18,7 +19,7 @@ type GetSuggestions struct {
 	MinDisplayedAds   int
 	RequestedAdsQty   int
 	MaxDisplayedAds   int
-	SuggestionsParams []string
+	SuggestionsParams map[string]map[string][]interface{}
 	Logger            GetSuggestionsLogger
 }
 
@@ -53,7 +54,9 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
-	mustParameters := getMustsParams(ad)
+	getRange(ad, interactor.SuggestionsParams)
+	return
+	mustParameters := getMustsParams(ad, interactor.SuggestionsParams)
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams)
 	mustNotParameters := getMustNotParams(ad)
 	ads, err = interactor.SuggestionsRepo.GetAds(
@@ -104,20 +107,44 @@ func (interactor *GetSuggestions) getAdsContact(
 }
 
 // getMustsParams returns a map with mandatory values
-func getMustsParams(ad domain.Ad) (out map[string]string) {
+func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
 	out = make(map[string]string)
-	out["Category"] = ad.Category
-	out["SubCategory"] = ad.SubCategory
 	out["PublisherType"] = string(domain.Pro)
+	adMap := ad.GetFieldsMapString()
+	for _, val := range suggestionsParams["default"]["must"] {
+		v := val.(string)
+		if adMap[strings.ToLower(v)] != "" {
+			out[v] = adMap[strings.ToLower(v)]
+		}
+	}
+	return
+}
+
+// getRange returns a map with range values
+func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]domain.Range) {
+	out = make(map[string]domain.Range)
+	//adMap := ad.GetFieldsMapString()
+	for _, val := range suggestionsParams["default"]["range"] {
+		v := val.(map[string]interface{})
+		//log.Printf("val %+v", val)
+		for _, valor := range v {
+			vlr := valor.(map[string]int)
+			//log.Printf("llave %+v", llave)
+			//log.Printf("valor %+v", valor)
+			//out[llave] = valor.(domain.Range)
+			log.Printf("vlr %+v", vlr)
+		}
+	}
 	return
 }
 
 // getShouldsParams returns a map with optional values
-func getShouldsParams(ad domain.Ad, suggestionsParams []string) (out map[string]string) {
+func getShouldsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
 	out = make(map[string]string)
-	for _, val := range suggestionsParams {
-		if ad.AdParams[val] != "" {
-			out["Params."+val] = ad.AdParams[val]
+	for _, val := range suggestionsParams["default"]["should"] {
+		v := val.(string)
+		if ad.AdParams[v] != "" {
+			out[v] = ad.AdParams[v]
 		}
 	}
 	return

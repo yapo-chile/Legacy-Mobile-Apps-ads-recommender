@@ -121,7 +121,7 @@ func main() { //nolint: funlen
 		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
 		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
 		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
-		SuggestionsParams: conf.AdConf.OldSuggestionsParams,
+		SuggestionsParams: conf.AdConf.SuggestionsParams,
 		Logger:            getSuggestionsLogger,
 	}
 	// HealthHandler
@@ -162,7 +162,7 @@ func main() { //nolint: funlen
 						Method:       "GET",
 						Pattern:      "/suggestions/{listID:.*}/pro",
 						Handler:      &getProSuggestionsHandler,
-						RequestCache: "10s",
+						RequestCache: "1s",
 					}},
 			},
 		},

@@ -1,10 +1,16 @@
 {
 	"post_adreply_inmo": {
 		"must": ["RegionID","CommuneID","CategoryID"],
-		"should": ["EstateType","Currency","Rooms"]
+		"should": ["Params.EstateType","Params.Rooms"]
 	},
 	"default": {
 		"must": ["Category","SubCategory"],
-		"should": ["BrandID","ModelID","Regdate","Brand","Model"]
+		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
+          	"range": [{
+            		"Price": {
+              			"gte": 1000,
+              			"lte": 200000000
+            		}
+		}]
 	}
 }

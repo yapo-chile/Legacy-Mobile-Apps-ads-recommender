@@ -64,7 +64,7 @@ type CorsConf struct {
 
 // EtcdConf configure how to read configuration from remote Etcd service
 type EtcdConf struct {
-	Host       string `env:"HOST" envDefault:"http://etcd-server.yapo.cl"`
+	Host       string `env:"HOST" envDefault:"http://host.docker.internal:2379"`
 	LastUpdate string `env:"LAST_UPDATE" envDefault:"/last_update"`
 	Prefix     string `env:"PREFIX" envDefault:"/v2/keys"`
 	RegionPath string `env:"REGION_PATH" envDefault:"/public/location/regions.json"`
@@ -73,22 +73,15 @@ type EtcdConf struct {
 
 // AdConf configure how to get ads and how to fill some fields
 type AdConf struct {
-	ImageServerURL         string                  `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
-	CurrencySymbol         string                  `env:"CURRENCY_SYMBOL" envDefault:"$"`
-	UnitOfAccountSymbol    string                  `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
-	MinDisplayedAds        int                     `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
-	MaxDisplayedAds        int                     `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
-	DefaultRequestedAdsQty int                     `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
-	SuggestionsParams      map[string]CarouselType `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
-	OldSuggestionsParams   []string                `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
-	ContactPath            string                  `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"`
-}
-
-type Should []string
-type Must []string
-type CarouselType struct {
-	Should Should
-	Must   Must
+	ImageServerURL         string                              `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
+	CurrencySymbol         string                              `env:"CURRENCY_SYMBOL" envDefault:"$"`
+	UnitOfAccountSymbol    string                              `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
+	MinDisplayedAds        int                                 `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
+	MaxDisplayedAds        int                                 `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
+	DefaultRequestedAdsQty int                                 `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	SuggestionsParams      map[string]map[string][]interface{} `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
+	OldSuggestionsParams   []string                            `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
+	ContactPath            string                              `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"`
 }
 
 // ResourcesConf resources path settings
@@ -98,8 +91,8 @@ type ResourcesConf struct {
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev01"`
-	Host                string        `env:"HOST" envDefault:"http://elastic"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev09_1613489314"`
+	Host                string        `env:"HOST" envDefault:"http://host.docker.internal"`
 	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
 	MaxIdleConnsPerHost int           `env:"MAX_IDLE_CONNECTIONS_PER_HOST" envDefault:"10"`

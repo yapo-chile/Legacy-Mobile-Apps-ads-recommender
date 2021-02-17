@@ -81,3 +81,6 @@ const (
 	Pro PublisherType = "pro"
 	Pri PublisherType = "private"
 )
+
+// Range
+type Range map[string]map[string]int

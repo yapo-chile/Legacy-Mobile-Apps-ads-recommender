@@ -134,6 +134,18 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
+// getRanges
+/*func (repo *adsRepository) getRanges(params map[string]map[string]string) string {
+	for _, v := range params {
+		repo.getRange(v, `{"%s": %s}`)
+	}
+}
+
+// getRange
+func (repo *adsRepository) getRange(params map[string]string) string {
+	return repo.getParams(params, `{"%s": "%s"}`)
+}*/
+
 // getFilters returns a string with filters
 // to be used on a query
 func (repo *adsRepository) getFilters(filters map[string]string) string {
