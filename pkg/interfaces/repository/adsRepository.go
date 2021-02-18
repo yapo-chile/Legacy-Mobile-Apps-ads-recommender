@@ -86,7 +86,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
 	musts, shoulds, mustsNot, filters map[string]string,
-	ranges map[string]map[string]int, size, from int,
+	ranges map[string]map[string]string, size, from int,
 ) (ads []domain.Ad, err error) {
 	mustsParams := []string{repo.getBoolParameters(musts), repo.getRangesParameters(ranges)}
 	params := map[string]string{
@@ -137,9 +137,21 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 }
 
 // getRangesParameters
-func (repo *adsRepository) getRangesParameters(params map[string]map[string]int) string {
-	b, _ := json.Marshal(params)
-	return fmt.Sprintf(`{"range": %s}`, string(b))
+func (repo *adsRepository) getRangesParameters(priceRange map[string]map[string]string) string {
+	params := map[string]string{
+		"PriceMin": priceRange["Price"]["gte"],
+		"PriceMax": priceRange["Price"]["lte"],
+		"UF":       repo.getUFValue(),
+	}
+	query, err := repo.ProcessTemplate("priceScript", params)
+	if err != nil {
+		return ""
+	}
+	return query
+}
+
+func (repo *adsRepository) getUFValue() string {
+	return "28000"
 }
 
 // getFilters returns a string with filters

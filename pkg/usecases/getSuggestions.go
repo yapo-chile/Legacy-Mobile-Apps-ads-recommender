@@ -110,7 +110,7 @@ func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]inte
 	out = make(map[string]string)
 	out["PublisherType"] = string(domain.Pro)
 	adMap := ad.GetFieldsMapString()
-	for _, val := range suggestionsParams["default"]["must"] {
+	for _, val := range suggestionsParams["post_adreply_inmo"]["must"] {
 		v := val.(string)
 		if adMap[strings.ToLower(v)] != "" {
 			out[v] = adMap[strings.ToLower(v)]
@@ -120,17 +120,15 @@ func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]inte
 }
 
 // getRange returns a map with range values
-func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]map[string]int) {
-	out = make(map[string]map[string]int)
-	//adMap := ad.GetFieldsMapString()
-	// lista de rangos
-	for _, val := range suggestionsParams["default"]["range"] {
+func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]map[string]string) {
+	out = make(map[string]map[string]string)
+	for _, val := range suggestionsParams["post_adreply_inmo"]["range"] {
 		v := val.(map[string]interface{})
 		for rangeKey, lim := range v {
-			rng := make(map[string]int)
+			rng := make(map[string]string)
 
 			for lk, lv := range lim.(map[string]interface{}) {
-				rng[lk] = int(lv.(float64))
+				rng[lk] = lv.(string)
 				out[rangeKey] = rng
 			}
 		}
@@ -142,7 +140,7 @@ func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{
 func getShouldsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
 	out = make(map[string]string)
 	adMap := ad.GetFieldsMapString()
-	for _, val := range suggestionsParams["default"]["should"] {
+	for _, val := range suggestionsParams["post_adreply_inmo"]["should"] {
 		v := val.(string)
 		if adMap[strings.ToLower(v)] != "" {
 			out[v] = adMap[strings.ToLower(v)]
