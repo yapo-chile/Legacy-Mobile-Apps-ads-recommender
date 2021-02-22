@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -67,14 +66,13 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		return
 	}
 
-	rangeParameters := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
-	log.Printf("rangeParameters %v", rangeParameters)
+	priceParameters := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams, carouselType)
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams, carouselType)
 	mustNotParameters := getMustNotParams(ad)
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		mustParameters, shouldParameters, mustNotParameters, map[string]string{},
-		rangeParameters,
+		priceParameters,
 		size, from,
 	)
 
@@ -145,31 +143,33 @@ func (interactor *GetSuggestions) getPriceRange(
 	priceRangeSlice []interface{},
 ) (out map[string]string) {
 	out = make(map[string]string)
+	if len(priceRangeSlice) <= 0 {
+		return
+	}
+
 	uf, _ := interactor.IndicatorsRepository.GetUF()
 	priceRange := priceRangeSlice[0].(map[string]interface{})
-	for key, val := range priceRange {
-		out[key] = val.(string)
-		if key == "calculate" {
-			adMap := ad.GetFieldsMapString()
 
-			// if ad currency is 'peso', divide price by UF
-			var adPrice float64
-			if adMap["currency"] == "peso" {
-				adPrice, _ = strconv.ParseFloat(adMap["price"], 64)
-				adPrice /= uf
-
-			}
-
-			minusPrice, _ := strconv.Atoi(priceRange["gte"].(string))
-			plusPrice, _ := strconv.Atoi(priceRange["lte"].(string))
-			minPrice := adPrice - float64(minusPrice)
-			maxPrice := adPrice + float64(plusPrice)
-
-			out["gte"] = fmt.Sprintf("%v", minPrice)
-			out["lte"] = fmt.Sprintf("%v", maxPrice)
-		}
-	}
 	out["uf"] = fmt.Sprintf("%v", uf)
+	if _, ok := priceRange["type"]; !ok {
+		priceRange["type"] = "must"
+	} else {
+		out["type"] = priceRange["type"].(string)
+	}
+
+	if _, ok := priceRange["calculate"]; ok {
+		adMap := ad.GetFieldsMapString()
+
+		adCurrency := adMap["currency"]
+		adPrice, _ := strconv.ParseFloat(adMap["price"], 64)
+		minusPrice, _ := strconv.Atoi(priceRange["gte"].(string))
+		plusPrice, _ := strconv.Atoi(priceRange["lte"].(string))
+
+		out["gte"], out["lte"] =
+			caclulateMinMaxPriceRange(adPrice, uf, adCurrency, minusPrice, plusPrice)
+	} else {
+		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
+	}
 	return
 }
 
@@ -204,6 +204,20 @@ func getMustNotParams(ad domain.Ad) (out map[string]string) {
 	return
 }
 
-func caclulateMinMaxPriceRange(adPrice float64, minusValue, plusValue int) (float64, error) {
-	return 0, nil
+func caclulateMinMaxPriceRange(
+	adPrice, uf float64,
+	adCurrency string,
+	minusValue, plusValue int,
+) (string, string) {
+	// if ad currency is 'peso', divide price by UF
+	if adCurrency == "peso" {
+		adPrice /= uf
+	} else {
+		adPrice /= 100
+	}
+
+	minPrice := adPrice - float64(minusValue)
+	maxPrice := adPrice + float64(plusValue)
+
+	return fmt.Sprintf("%v", minPrice), fmt.Sprintf("%v", maxPrice)
 }
