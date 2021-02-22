@@ -11,17 +11,20 @@ import (
 
 const (
 	contactField = "phonelink"
+
+	ErrGetUF = "ERR_GET_UF_VALUE"
 )
 
 // GetSuggestions contains the repositories needed to retrieve ads suggestions
 type GetSuggestions struct {
-	SuggestionsRepo   AdsRepository
-	AdContact         AdContactRepo
-	MinDisplayedAds   int
-	RequestedAdsQty   int
-	MaxDisplayedAds   int
-	SuggestionsParams map[string]map[string][]interface{}
-	Logger            GetSuggestionsLogger
+	SuggestionsRepo      AdsRepository
+	AdContact            AdContactRepo
+	MinDisplayedAds      int
+	RequestedAdsQty      int
+	MaxDisplayedAds      int
+	SuggestionsParams    map[string]map[string][]interface{}
+	Logger               GetSuggestionsLogger
+	IndicatorsRepository IndicatorsRepository
 }
 
 // GetSuggestionsLogger defines the logger methods that will be used for this usecase
@@ -65,7 +68,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		return
 	}
 
-	rangeParameters := getRange(ad, interactor.SuggestionsParams, carouselType)
+	rangeParameters := interactor.getRange(ad, interactor.SuggestionsParams, carouselType)
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams, carouselType)
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams, carouselType)
 	mustNotParameters := getMustNotParams(ad)
@@ -137,7 +140,7 @@ func getMustsParams(
 }
 
 // getRange returns a map with range values
-func getRange(
+func (interactor *GetSuggestions) getRange(
 	ad domain.Ad,
 	suggestionsParams map[string]map[string][]interface{},
 	carouselType string,
@@ -157,9 +160,10 @@ func getRange(
 					// if ad currency is 'peso', divide price by UF
 					log.Printf("ad currency %v", adMap["currency"])
 					var adPrice float64
+					uf, _ := interactor.IndicatorsRepository.GetUF()
 					if adMap["currency"] == "peso" {
 						adPrice, _ = strconv.ParseFloat(adMap["price"], 64)
-						adPrice /= 28000
+						adPrice /= uf
 
 						log.Printf("ad price uf value %v", adPrice)
 					}
@@ -174,6 +178,7 @@ func getRange(
 					rng["gte"] = fmt.Sprintf("%v", minPrice)
 					rng["lte"] = fmt.Sprintf("%v", maxPrice)
 					rng["type"] = rangeValues["type"].(string)
+					rng["uf"] = fmt.Sprintf("%v", uf)
 					out[rangeKey] = rng
 				} else {
 					rng[lk] = lv.(string)

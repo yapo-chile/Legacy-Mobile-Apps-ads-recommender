@@ -94,6 +94,9 @@ func main() { //nolint: funlen
 	)
 	HTTPHandler := infrastructure.NewHTTPHandler(logger)
 
+	// httpCachedIndicatorHandler
+	httpCachedIndicatorHandler := infrastructure.NewHTTPCachedHandler(logger, conf.IndicatorsConf.CacheTTL)
+
 	// Repos
 	adsRepository := repository.NewAdsRepository(
 		elasticHandler,
@@ -105,6 +108,10 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.SearchResultPage,
 	)
 	adContactRepo := repository.NewAdContactRepository(HTTPHandler, conf.AdConf.ContactPath)
+	indicatorsRepository := repository.NewIndicatorsRepository(
+		httpCachedIndicatorHandler,
+		conf.IndicatorsConf.UFPath,
+	)
 
 	if err := infrastructure.LoadJSONFromFile(
 		conf.ResourcesConf.SuggestionsParamsURL,
@@ -116,13 +123,14 @@ func main() { //nolint: funlen
 
 	// Interactors
 	getSuggestions := usecases.GetSuggestions{
-		SuggestionsRepo:   adsRepository,
-		AdContact:         adContactRepo,
-		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
-		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
-		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
-		SuggestionsParams: conf.AdConf.SuggestionsParams,
-		Logger:            getSuggestionsLogger,
+		SuggestionsRepo:      adsRepository,
+		AdContact:            adContactRepo,
+		MinDisplayedAds:      conf.AdConf.MinDisplayedAds,
+		RequestedAdsQty:      conf.AdConf.DefaultRequestedAdsQty,
+		MaxDisplayedAds:      conf.AdConf.MaxDisplayedAds,
+		SuggestionsParams:    conf.AdConf.SuggestionsParams,
+		Logger:               getSuggestionsLogger,
+		IndicatorsRepository: indicatorsRepository,
 	}
 	// HealthHandler
 	var healthHandler handlers.HealthHandler

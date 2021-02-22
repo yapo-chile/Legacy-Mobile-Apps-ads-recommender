@@ -167,17 +167,13 @@ func (repo *adsRepository) getRangesParameters(priceRange map[string]map[string]
 	params := map[string]string{
 		"PriceMin": priceRange["Price"]["gte"],
 		"PriceMax": priceRange["Price"]["lte"],
-		"UF":       repo.getUFValue(),
+		"UF":       priceRange["Price"]["uf"],
 	}
 	query, err := repo.ProcessTemplate("priceScript", params)
 	if err != nil {
 		return ""
 	}
 	return query
-}
-
-func (repo *adsRepository) getUFValue() string {
-	return "28000"
 }
 
 // getFilters returns a string with filters

@@ -10,3 +10,8 @@ type GetSuggestionsInteractor interface {
 	GetProSuggestions(
 		listID string, optionalParams []string, size, from int, carousel string) (ads []domain.Ad, err error)
 }
+
+// IndicatorsRepository defines the methods that a Indicators repository should have
+type IndicatorsRepository interface {
+	GetUF() (float64, error)
+}

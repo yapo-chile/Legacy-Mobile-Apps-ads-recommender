@@ -39,3 +39,19 @@ type Ad struct {
 	PublisherType domain.PublisherType `json:"PublisherType"`
 	Params        map[string]string    `json:"Params"`
 }
+
+// UFApiResponse represents the indicators api response
+type UFApiResponse struct {
+	Version     string `json:"version"`
+	Author      string `json:"autor"` // nolint: misspell
+	Code        string `json:"codigo"`
+	Name        string `json:"nombre"`
+	MeasureUnit string `json:"unidad_medida"`
+	Sets        []Set  `json:"serie"`
+}
+
+// Set represents serie in the api response
+type Set struct {
+	Date  string  `json:"fecha"`
+	Value float64 `json:"valor"`
+}

@@ -118,6 +118,12 @@ func (cc CorsConf) GetHeaders() map[string]string {
 	}
 }
 
+// IndicatorsConf defines the configuration needed to communicate with indicators api
+type IndicatorsConf struct {
+	UFPath   string `env:"UF_PATH" envDefault:"https://mindicador.cl/api/uf/"`
+	CacheTTL int    `env:"CACHE_TTL" envDefault:"600000"` // time in milliseconds
+}
+
 // InBrowserCacheConf Used to handle browser cache
 type InBrowserCacheConf struct {
 	Enabled bool `env:"ENABLED" envDefault:"false"`
@@ -145,6 +151,7 @@ type Config struct {
 	EtcdConf              EtcdConf              `env:"ETCD_"`
 	AdConf                AdConf                `env:"AD_"`
 	ResourcesConf         ResourcesConf         `env:"RESOURCES_"`
+	IndicatorsConf        IndicatorsConf        `env:"INDICATORS_"`
 }
 
 // LoadFromEnv loads the config data from the environment variables
