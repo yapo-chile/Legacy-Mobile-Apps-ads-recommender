@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -88,12 +89,36 @@ func (repo *adsRepository) GetAds(
 	musts, shoulds, mustsNot, filters map[string]string,
 	ranges map[string]map[string]string, size, from int,
 ) (ads []domain.Ad, err error) {
-	mustsParams := []string{repo.getBoolParameters(musts), repo.getRangesParameters(ranges)}
+
+	mustsParams := repo.getBoolParameters(musts)
+	mustsNotParams := repo.getBoolParameters(mustsNot)
+	shouldsParams := repo.getBoolParameters(shoulds)
+	filtersParams := repo.getFilters(filters)
+
+	if len(ranges) > 0 {
+		rangesParams := repo.getRangesParameters(ranges)
+
+		switch ranges["Price"]["type"] {
+		//TODO verificar que Params no sea vacio, ya que si se agrega solo range params
+		//con coma antes el request da error
+		case "must":
+			mustsParams = strings.Join([]string{mustsParams, rangesParams}, ",")
+		case "mustNot":
+			mustsNotParams = strings.Join([]string{mustsNotParams, rangesParams}, ",")
+		case "should":
+			shouldsParams = strings.Join([]string{shouldsParams, rangesParams}, ",")
+		case "filter":
+			filtersParams = strings.Join([]string{filtersParams, rangesParams}, ",")
+		default:
+			mustsParams = strings.Join([]string{mustsParams, rangesParams}, ",")
+		}
+	}
+
 	params := map[string]string{
-		"Musts":    strings.Join(mustsParams, ","),
-		"MustsNot": repo.getBoolParameters(mustsNot),
-		"Shoulds":  repo.getBoolParameters(shoulds),
-		"Filters":  repo.getFilters(filters),
+		"Musts":    mustsParams,
+		"MustsNot": mustsNotParams,
+		"Shoulds":  shouldsParams,
+		"Filters":  filtersParams,
 	}
 	return repo.getAdsProcess("getAds", params, size, from)
 }
@@ -106,6 +131,7 @@ func (repo *adsRepository) getAdsProcess(
 	size, from int,
 ) (ads []domain.Ad, err error) {
 	query, err := repo.ProcessTemplate(templateName, params)
+	log.Printf("query: %+v", query)
 	if err != nil {
 		return
 	}

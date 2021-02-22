@@ -4,8 +4,10 @@
 		"should": ["Params.EstateType","Params.Rooms"],
 		"range": [{
 			"Price": {
-				"gte": "5000",
-				"lte": "7000"
+				"gte": "1000",
+				"lte": "3000",
+				"type": "should",
+				"calculate": "true"
 			}
 		}]
 	},

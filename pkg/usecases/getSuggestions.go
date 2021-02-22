@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -37,7 +39,7 @@ type GetSuggestionsLogger interface {
 // When suggestions retrieved on repo are less than MinDisplayedAds value, it returns empty slice.
 // If something goes wrong returns empty slice and error.
 func (interactor *GetSuggestions) GetProSuggestions(
-	listID string, optionalParams []string, size, from int,
+	listID string, optionalParams []string, size, from int, carouselType string,
 ) (ads []domain.Ad, err error) {
 	if size > interactor.MaxDisplayedAds {
 		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
@@ -53,9 +55,19 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
-	rangeParameters := getRange(ad, interactor.SuggestionsParams)
-	mustParameters := getMustsParams(ad, interactor.SuggestionsParams)
-	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams)
+
+	if carouselType == "" {
+		carouselType = "default"
+	}
+
+	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
+		log.Printf("carousel \"%s\" is not a valid carousel", carouselType)
+		return
+	}
+
+	rangeParameters := getRange(ad, interactor.SuggestionsParams, carouselType)
+	mustParameters := getMustsParams(ad, interactor.SuggestionsParams, carouselType)
+	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams, carouselType)
 	mustNotParameters := getMustNotParams(ad)
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		mustParameters, shouldParameters, mustNotParameters, map[string]string{},
@@ -106,11 +118,16 @@ func (interactor *GetSuggestions) getAdsContact(
 }
 
 // getMustsParams returns a map with mandatory values
-func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
+func getMustsParams(
+	ad domain.Ad,
+	suggestionsParams map[string]map[string][]interface{},
+	carouselType string,
+) (out map[string]string) {
 	out = make(map[string]string)
 	out["PublisherType"] = string(domain.Pro)
 	adMap := ad.GetFieldsMapString()
-	for _, val := range suggestionsParams["post_adreply_inmo"]["must"] {
+
+	for _, val := range suggestionsParams[carouselType]["must"] {
 		v := val.(string)
 		if adMap[strings.ToLower(v)] != "" {
 			out[v] = adMap[strings.ToLower(v)]
@@ -120,30 +137,75 @@ func getMustsParams(ad domain.Ad, suggestionsParams map[string]map[string][]inte
 }
 
 // getRange returns a map with range values
-func getRange(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]map[string]string) {
+func getRange(
+	ad domain.Ad,
+	suggestionsParams map[string]map[string][]interface{},
+	carouselType string,
+) (out map[string]map[string]string) {
 	out = make(map[string]map[string]string)
-	for _, val := range suggestionsParams["post_adreply_inmo"]["range"] {
+	for _, val := range suggestionsParams[carouselType]["range"] {
 		v := val.(map[string]interface{})
 		for rangeKey, lim := range v {
 			rng := make(map[string]string)
 
-			for lk, lv := range lim.(map[string]interface{}) {
-				rng[lk] = lv.(string)
-				out[rangeKey] = rng
+			rangeValues := lim.(map[string]interface{})
+			for lk, lv := range rangeValues {
+				// ask if price needs to be calculated given the ad price
+				if _, ok := rangeValues["calculate"]; ok {
+					adMap := ad.GetFieldsMapString()
+
+					// if ad currency is 'peso', divide price by UF
+					log.Printf("ad currency %v", adMap["currency"])
+					var adPrice float64
+					if adMap["currency"] == "peso" {
+						adPrice, _ = strconv.ParseFloat(adMap["price"], 64)
+						adPrice /= 28000
+
+						log.Printf("ad price uf value %v", adPrice)
+					}
+
+					minusPrice, _ := strconv.Atoi(rangeValues["gte"].(string))
+					plusPrice, _ := strconv.Atoi(rangeValues["lte"].(string))
+					minPrice := adPrice - float64(minusPrice)
+					maxPrice := adPrice + float64(plusPrice)
+
+					log.Printf("min %v max %v ad %v ad %v", minPrice, maxPrice, adPrice, adMap["price"])
+
+					rng["gte"] = fmt.Sprintf("%v", minPrice)
+					rng["lte"] = fmt.Sprintf("%v", maxPrice)
+					rng["type"] = rangeValues["type"].(string)
+					out[rangeKey] = rng
+				} else {
+					rng[lk] = lv.(string)
+					log.Printf("lk %s lv %s", lk, lv)
+					out[rangeKey] = rng
+				}
 			}
 		}
 	}
+	log.Printf("out %+v", out)
 	return
 }
 
 // getShouldsParams returns a map with optional values
-func getShouldsParams(ad domain.Ad, suggestionsParams map[string]map[string][]interface{}) (out map[string]string) {
+func getShouldsParams(
+	ad domain.Ad,
+	suggestionsParams map[string]map[string][]interface{},
+	carouselType string,
+) (out map[string]string) {
 	out = make(map[string]string)
 	adMap := ad.GetFieldsMapString()
-	for _, val := range suggestionsParams["post_adreply_inmo"]["should"] {
-		v := val.(string)
-		if adMap[strings.ToLower(v)] != "" {
-			out[v] = adMap[strings.ToLower(v)]
+
+	//should params can come with syntax 'Params.{param} or simply {param}'
+	//se we need to split the string with '.' in the first syntax is used to
+	//get the value
+	for _, shoulParam := range suggestionsParams[carouselType]["should"] {
+		shoulParamKey := shoulParam.(string)
+		shoulParamSlice := strings.Split(shoulParamKey, ".")
+		shouldParamValue := shoulParamSlice[len(shoulParamSlice)-1]
+
+		if adMap[strings.ToLower(shouldParamValue)] != "" {
+			out[shoulParamKey] = adMap[strings.ToLower(shouldParamValue)]
 		}
 	}
 	return
@@ -154,4 +216,8 @@ func getMustNotParams(ad domain.Ad) (out map[string]string) {
 	out = make(map[string]string)
 	out["ListID"] = strconv.FormatInt(ad.ListID, 10)
 	return
+}
+
+func caclulateMinMaxPriceRange(adPrice float64, minusValue, plusValue int) (float64, error) {
+	return 0, nil
 }
