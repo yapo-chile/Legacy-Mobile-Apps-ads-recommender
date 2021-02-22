@@ -64,11 +64,11 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	}
 
 	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
-		log.Printf("carousel \"%s\" is not a valid carousel", carouselType)
 		return
 	}
 
-	rangeParameters := interactor.getRange(ad, interactor.SuggestionsParams, carouselType)
+	rangeParameters := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	log.Printf("rangeParameters %v", rangeParameters)
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams, carouselType)
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams, carouselType)
 	mustNotParameters := getMustNotParams(ad)
@@ -139,56 +139,37 @@ func getMustsParams(
 	return
 }
 
-// getRange returns a map with range values
-func (interactor *GetSuggestions) getRange(
+// getPriceRange returns a map with range values
+func (interactor *GetSuggestions) getPriceRange(
 	ad domain.Ad,
-	suggestionsParams map[string]map[string][]interface{},
-	carouselType string,
-) (out map[string]map[string]string) {
-	out = make(map[string]map[string]string)
-	for _, val := range suggestionsParams[carouselType]["range"] {
-		v := val.(map[string]interface{})
-		for rangeKey, lim := range v {
-			rng := make(map[string]string)
+	priceRangeSlice []interface{},
+) (out map[string]string) {
+	out = make(map[string]string)
+	uf, _ := interactor.IndicatorsRepository.GetUF()
+	priceRange := priceRangeSlice[0].(map[string]interface{})
+	for key, val := range priceRange {
+		out[key] = val.(string)
+		if key == "calculate" {
+			adMap := ad.GetFieldsMapString()
 
-			rangeValues := lim.(map[string]interface{})
-			for lk, lv := range rangeValues {
-				// ask if price needs to be calculated given the ad price
-				if _, ok := rangeValues["calculate"]; ok {
-					adMap := ad.GetFieldsMapString()
+			// if ad currency is 'peso', divide price by UF
+			var adPrice float64
+			if adMap["currency"] == "peso" {
+				adPrice, _ = strconv.ParseFloat(adMap["price"], 64)
+				adPrice /= uf
 
-					// if ad currency is 'peso', divide price by UF
-					log.Printf("ad currency %v", adMap["currency"])
-					var adPrice float64
-					uf, _ := interactor.IndicatorsRepository.GetUF()
-					if adMap["currency"] == "peso" {
-						adPrice, _ = strconv.ParseFloat(adMap["price"], 64)
-						adPrice /= uf
-
-						log.Printf("ad price uf value %v", adPrice)
-					}
-
-					minusPrice, _ := strconv.Atoi(rangeValues["gte"].(string))
-					plusPrice, _ := strconv.Atoi(rangeValues["lte"].(string))
-					minPrice := adPrice - float64(minusPrice)
-					maxPrice := adPrice + float64(plusPrice)
-
-					log.Printf("min %v max %v ad %v ad %v", minPrice, maxPrice, adPrice, adMap["price"])
-
-					rng["gte"] = fmt.Sprintf("%v", minPrice)
-					rng["lte"] = fmt.Sprintf("%v", maxPrice)
-					rng["type"] = rangeValues["type"].(string)
-					rng["uf"] = fmt.Sprintf("%v", uf)
-					out[rangeKey] = rng
-				} else {
-					rng[lk] = lv.(string)
-					log.Printf("lk %s lv %s", lk, lv)
-					out[rangeKey] = rng
-				}
 			}
+
+			minusPrice, _ := strconv.Atoi(priceRange["gte"].(string))
+			plusPrice, _ := strconv.Atoi(priceRange["lte"].(string))
+			minPrice := adPrice - float64(minusPrice)
+			maxPrice := adPrice + float64(plusPrice)
+
+			out["gte"] = fmt.Sprintf("%v", minPrice)
+			out["lte"] = fmt.Sprintf("%v", maxPrice)
 		}
 	}
-	log.Printf("out %+v", out)
+	out["uf"] = fmt.Sprintf("%v", uf)
 	return
 }
 

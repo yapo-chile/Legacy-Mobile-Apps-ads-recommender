@@ -87,7 +87,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
 	musts, shoulds, mustsNot, filters map[string]string,
-	ranges map[string]map[string]string, size, from int,
+	ranges map[string]string, size, from int,
 ) (ads []domain.Ad, err error) {
 
 	mustsParams := repo.getBoolParameters(musts)
@@ -98,7 +98,7 @@ func (repo *adsRepository) GetAds(
 	if len(ranges) > 0 {
 		rangesParams := repo.getRangesParameters(ranges)
 
-		switch ranges["Price"]["type"] {
+		switch ranges["type"] {
 		//TODO verificar que Params no sea vacio, ya que si se agrega solo range params
 		//con coma antes el request da error
 		case "must":
@@ -163,11 +163,11 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 }
 
 // getRangesParameters
-func (repo *adsRepository) getRangesParameters(priceRange map[string]map[string]string) string {
+func (repo *adsRepository) getRangesParameters(priceRange map[string]string) string {
 	params := map[string]string{
-		"PriceMin": priceRange["Price"]["gte"],
-		"PriceMax": priceRange["Price"]["lte"],
-		"UF":       priceRange["Price"]["uf"],
+		"PriceMin": priceRange["gte"],
+		"PriceMax": priceRange["lte"],
+		"UF":       priceRange["uf"],
 	}
 	query, err := repo.ProcessTemplate("priceScript", params)
 	if err != nil {
