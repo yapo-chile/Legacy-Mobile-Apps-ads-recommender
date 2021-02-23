@@ -152,7 +152,7 @@ func (interactor *GetSuggestions) getPriceRange(
 
 	out["uf"] = fmt.Sprintf("%v", uf)
 	if _, ok := priceRange["type"]; !ok {
-		priceRange["type"] = "must"
+		out["type"] = "must"
 	} else {
 		out["type"] = priceRange["type"].(string)
 	}

@@ -98,8 +98,6 @@ func (repo *adsRepository) GetAds(
 	if len(priceRange) > 0 {
 		priceParams := repo.getPriceParameters(priceRange)
 
-		log.Printf("priceParams %v", priceParams)
-
 		switch priceRange["type"] {
 		case "must":
 			mustsParams = joinParams(mustsParams, priceParams)
@@ -284,17 +282,12 @@ func sortedKeys(m map[string]string) (keys []string) {
 	return keys
 }
 
-func joinParams(params, appendParams string) (output string) {
-
-	log.Printf("params before %v, appendParams %v", params, appendParams)
-
-	if len(params) <= 0 {
-		output = appendParams
-	} else {
-		output = strings.Join([]string{params, appendParams}, ",")
+func joinParams(params ...string) (output string) {
+	paramsSlice := make([]string, 0)
+	for _, val := range params {
+		if len(val) > 0 {
+			paramsSlice = append(paramsSlice, val)
+		}
 	}
-
-	log.Printf("params after %v", params)
-
-	return
+	return strings.Join(paramsSlice, ",")
 }
