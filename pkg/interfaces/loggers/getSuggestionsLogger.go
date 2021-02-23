@@ -36,6 +36,10 @@ func (l *getSuggestionsLogger) ErrorGettingAdsContact(listID string, err error) 
 	l.logger.Error("cannot get ads contact with listID %s with error: %+v", listID, err)
 }
 
+func (l *getSuggestionsLogger) InvalidCarousel(carousel string) {
+	l.logger.Error("carousel '%s' not found", carousel)
+}
+
 // MakeGetSuggestionsLogger sets up a GetSuggestionsLogger instrumented
 // via the provided logger
 func MakeGetSuggestionsLogger(logger Logger) usecases.GetSuggestionsLogger {

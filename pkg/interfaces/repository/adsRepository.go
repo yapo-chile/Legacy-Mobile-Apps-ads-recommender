@@ -86,8 +86,8 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	musts, shoulds, mustsNot, filters map[string]string,
-	ranges map[string]string, size, from int,
+	musts, shoulds, mustsNot, filters, priceRange map[string]string,
+	size, from int,
 ) (ads []domain.Ad, err error) {
 
 	mustsParams := repo.getBoolParameters(musts)
@@ -95,22 +95,20 @@ func (repo *adsRepository) GetAds(
 	shouldsParams := repo.getBoolParameters(shoulds)
 	filtersParams := repo.getFilters(filters)
 
-	if len(ranges) > 0 {
-		rangesParams := repo.getRangesParameters(ranges)
+	if len(priceRange) > 0 {
+		priceParams := repo.getPriceParameters(priceRange)
 
-		switch ranges["type"] {
-		//TODO verificar que Params no sea vacio, ya que si se agrega solo range params
-		//con coma antes el request da error
+		log.Printf("priceParams %v", priceParams)
+
+		switch priceRange["type"] {
 		case "must":
-			mustsParams = strings.Join([]string{mustsParams, rangesParams}, ",")
+			mustsParams = joinParams(mustsParams, priceParams)
 		case "mustNot":
-			mustsNotParams = strings.Join([]string{mustsNotParams, rangesParams}, ",")
+			mustsNotParams = joinParams(mustsNotParams, priceParams)
 		case "should":
-			shouldsParams = strings.Join([]string{shouldsParams, rangesParams}, ",")
+			shouldsParams = joinParams(shouldsParams, priceParams)
 		case "filter":
-			filtersParams = strings.Join([]string{filtersParams, rangesParams}, ",")
-		default:
-			mustsParams = strings.Join([]string{mustsParams, rangesParams}, ",")
+			filtersParams = joinParams(filtersParams, priceParams)
 		}
 	}
 
@@ -162,8 +160,8 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
-// getRangesParameters
-func (repo *adsRepository) getRangesParameters(priceRange map[string]string) string {
+// getPriceParameters
+func (repo *adsRepository) getPriceParameters(priceRange map[string]string) string {
 	params := map[string]string{
 		"PriceMin": priceRange["gte"],
 		"PriceMax": priceRange["lte"],
@@ -284,4 +282,19 @@ func sortedKeys(m map[string]string) (keys []string) {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func joinParams(params, appendParams string) (output string) {
+
+	log.Printf("params before %v, appendParams %v", params, appendParams)
+
+	if len(params) <= 0 {
+		output = appendParams
+	} else {
+		output = strings.Join([]string{params, appendParams}, ",")
+	}
+
+	log.Printf("params after %v", params)
+
+	return
 }

@@ -2,15 +2,15 @@
 	"post_adreply_inmo": {
 		"must": ["RegionID","CommuneID","CategoryID"],
 		"should": ["Params.EstateType","Params.Rooms"],
+		"mustNot":["ListID"],
 		"priceRange": [{
 			"gte": "1000",
-			"lte": "3000",
-			"type": "should",
-			"calculate": "true"
+			"lte": "9000"
 		}]
 	},
 	"default": {
 		"must": ["Category","SubCategory"],
-		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"]
+		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
+		"mustNot":["ListID"]
 	}
 }

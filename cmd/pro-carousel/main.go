@@ -168,9 +168,9 @@ func main() { //nolint: funlen
 					{
 						Name:         "Get suggestions for a specific ad",
 						Method:       "GET",
-						Pattern:      "/suggestions/{listID:.*}/pro",
+						Pattern:      "/suggestions/{carousel:.*}/{listID:.*}/pro",
 						Handler:      &getProSuggestionsHandler,
-						RequestCache: "1s",
+						RequestCache: "10s",
 					}},
 			},
 		},

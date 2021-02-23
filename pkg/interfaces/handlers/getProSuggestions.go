@@ -30,7 +30,7 @@ type getProSuggestionsHandlerInput struct {
 	ListID         string   `path:"listID"`
 	Limit          int      `query:"limit"`
 	OptionalParams []string `query:"params"`
-	CarouselType   string   `query:"carousel"`
+	CarouselType   string   `path:"carousel"`
 }
 
 // getProSuggestionsHandlerOutput struct that represents presenter output.
