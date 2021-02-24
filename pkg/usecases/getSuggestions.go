@@ -70,10 +70,12 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams[carouselType]["should"])
 	mustNotParameters := getMustNotParams(ad, interactor.SuggestionsParams[carouselType]["mustNot"])
 	filtersParameters := getFilterParams(ad, interactor.SuggestionsParams[carouselType]["filter"])
+	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
 
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		mustParameters, shouldParameters, mustNotParameters, filtersParameters,
 		priceParameters,
+		decayParameters,
 		size, from,
 	)
 
@@ -225,54 +227,19 @@ func getFilterParams(ad domain.Ad, suggestionsParams []interface{}) (out map[str
 }
 
 // getDecayFunctionParams returns a map with decay function values
-func getDecayFunctionParams(suggestionsParams []interface{}) (out map[string]string) {
+func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{}, carouselType string) (out map[string]string) {
 	out = make(map[string]string)
-
-	defaultName := "gauss"
-	defaultField := "ListTime"
-	defaultOrigin := "now/1d"
-	defaultOffset := "1d"
-	defaultScale := "7d"
-
-	if len(suggestionsParams) < 0 {
-		out["name"] = defaultName
-		out["field"] = defaultField
-		out["origin"] = defaultOrigin
-		out["offset"] = defaultOffset
-		out["scale"] = defaultScale
+	if len(decayFuncConf[carouselType]["decayFunc"]) <= 0 {
+		carouselType = "default"
 	}
 
-	decayFuncParams := suggestionsParams[0].(map[string]interface{})
+	decayFunc := decayFuncConf[carouselType]["decayFunc"][0].(map[string]interface{})
 
-	if val, ok := decayFuncParams["name"]; ok {
-		out["name"] = val.(string)
-	} else {
-		out["name"] = defaultName
-	}
-
-	if val, ok := decayFuncParams["field"]; ok {
-		out["field"] = val.(string)
-	} else {
-		out["field"] = defaultField
-	}
-
-	if val, ok := decayFuncParams["origin"]; ok {
-		out["origin"] = val.(string)
-	} else {
-		out["origin"] = defaultOrigin
-	}
-
-	if val, ok := decayFuncParams["offset"]; ok {
-		out["offset"] = val.(string)
-	} else {
-		out["offset"] = defaultOffset
-	}
-
-	if val, ok := decayFuncParams["scale"]; ok {
-		out["scale"] = val.(string)
-	} else {
-		out["scale"] = defaultScale
-	}
+	out["name"] = decayFunc["name"].(string)
+	out["field"] = decayFunc["field"].(string)
+	out["origin"] = decayFunc["origin"].(string)
+	out["offset"] = decayFunc["offset"].(string)
+	out["scale"] = decayFunc["scale"].(string)
 
 	return
 }

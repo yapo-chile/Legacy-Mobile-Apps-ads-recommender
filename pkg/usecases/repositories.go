@@ -6,7 +6,7 @@ import "github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
 type AdsRepository interface {
 	GetAd(listID string) (ad domain.Ad, err error)
 	GetAds(
-		musts, shoulds, mustsNot, filters map[string]string,
+		musts, shoulds, mustsNot, filters, decay map[string]string,
 		ranges map[string]string,
 		size, from int,
 	) ([]domain.Ad, error)

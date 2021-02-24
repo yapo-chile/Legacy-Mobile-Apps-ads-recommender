@@ -29,7 +29,7 @@ func (l *getSuggestionsLogger) ErrorGettingAds(musts, shoulds, mustsNot map[stri
 }
 
 func (l *getSuggestionsLogger) NotEnoughAds(listID string, lenAds int) {
-	l.logger.Info("cannot get enough ads using listID, just got %d ads", listID, lenAds)
+	l.logger.Info("cannot get enough ads using listID %s, just got %d ads", listID, lenAds)
 }
 
 func (l *getSuggestionsLogger) ErrorGettingAdsContact(listID string, err error) {

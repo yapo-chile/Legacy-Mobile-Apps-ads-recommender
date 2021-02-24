@@ -86,7 +86,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	musts, shoulds, mustsNot, filters, priceRange map[string]string,
+	musts, shoulds, mustsNot, filters, priceRange, decay map[string]string,
 	size, from int,
 ) (ads []domain.Ad, err error) {
 
@@ -115,6 +115,11 @@ func (repo *adsRepository) GetAds(
 		"MustsNot": mustsNotParams,
 		"Shoulds":  shouldsParams,
 		"Filters":  filtersParams,
+		"Name":     decay["name"],
+		"Field":    decay["field"],
+		"Origin":   decay["origin"],
+		"Offset":   decay["offset"],
+		"Scale":    decay["scale"],
 	}
 	return repo.getAdsProcess("getAds", params, size, from)
 }

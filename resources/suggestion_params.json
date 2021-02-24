@@ -11,6 +11,13 @@
 	"default": {
 		"must": ["Category","SubCategory"],
 		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
-		"mustNot":["ListID"]
+		"mustNot":["ListID"],
+		"decayFunc": [{
+			"name": "gauss",
+			"field": "ListTime",
+			"origin": "now/1d",
+			"offset": "1d",
+			"scale": "7d"
+		}]
 	}
 }
