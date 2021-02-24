@@ -6,6 +6,10 @@
 		"priceRange": [{
 			"gte": "1000",
 			"lte": "9000"
+		}],
+		"queryString": [{
+			"query": "(pro OR professional)",
+			"defaultField": "PublisherType"
 		}]
 	},
 	"default": {

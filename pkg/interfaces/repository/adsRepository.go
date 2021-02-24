@@ -87,6 +87,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
 	musts, shoulds, mustsNot, filters, priceRange, decay map[string]string,
+	queryString []map[string]string,
 	size, from int,
 ) (ads []domain.Ad, err error) {
 
@@ -94,6 +95,7 @@ func (repo *adsRepository) GetAds(
 	mustsNotParams := repo.getBoolParameters(mustsNot)
 	shouldsParams := repo.getBoolParameters(shoulds)
 	filtersParams := repo.getFilters(filters)
+	queryStringParams := repo.getQueryString(queryString)
 
 	if len(priceRange) > 0 {
 		priceParams := repo.processPriceTemplate(priceRange)
@@ -107,6 +109,10 @@ func (repo *adsRepository) GetAds(
 		case "filter":
 			filtersParams = joinParams(filtersParams, priceParams)
 		}
+	}
+
+	if len(queryStringParams) > 0 {
+		mustsParams = joinParams(mustsParams, queryStringParams)
 	}
 
 	params := map[string]string{
@@ -160,6 +166,20 @@ func (repo *adsRepository) getAdsProcess(
 // to be used on a query as must, should or must_not
 func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
+}
+
+// getBoolParameters returns a string with bool parameters
+// to be used on a query as must, should or must_not
+func (repo *adsRepository) getQueryString(params []map[string]string) string {
+	var out string
+	for _, param := range params {
+		out += repo.getParams(param, `{"query_string": {
+			"query": "%s",
+			"default_field": "%s"
+		}}`)
+	}
+
+	return out
 }
 
 // processPriceTemplate returns the range query template as string

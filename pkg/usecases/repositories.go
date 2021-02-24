@@ -7,6 +7,7 @@ type AdsRepository interface {
 	GetAd(listID string) (ad domain.Ad, err error)
 	GetAds(
 		musts, shoulds, mustsNot, filters, ranges, decay map[string]string,
+		queryString []map[string]string,
 		size, from int,
 	) ([]domain.Ad, error)
 }

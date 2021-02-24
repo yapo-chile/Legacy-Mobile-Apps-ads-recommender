@@ -73,6 +73,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		return
 	}
 	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
+	queryStringParameters := getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams[carouselType]["must"])
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams[carouselType]["should"])
 	mustNotParameters := getMustNotParams(ad, interactor.SuggestionsParams[carouselType]["mustNot"])
@@ -82,6 +83,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		mustParameters, shouldParameters, mustNotParameters, filtersParameters,
 		priceParameters,
 		decayParameters,
+		queryStringParameters,
 		size, from,
 	)
 
@@ -167,11 +169,28 @@ func (interactor *GetSuggestions) getPriceRange(
 	return
 }
 
+// getQueryStringParams returns a map query string values
+func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]string) {
+	out = make([]map[string]string, 0)
+	if len(queryStringSlice) <= 0 {
+		return
+	}
+
+	for _, value := range queryStringSlice {
+		valueStr := value.(map[string]interface{})
+		outTmp := make(map[string]string)
+		outTmp["query"] = fmt.Sprintf("%v", valueStr["query"])
+		outTmp["default_field"] = fmt.Sprintf("%v", valueStr["defaultField"])
+
+		out = append(out, outTmp)
+	}
+	return
+}
+
 // getMustsParams returns a map with mandatory values
 func getMustsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
 	adMap := ad.GetFieldsMapString()
 	out = getParams(adMap, suggestionsParams)
-	out["PublisherType"] = string(domain.Pro)
 	return
 }
 
