@@ -173,12 +173,9 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 func (repo *adsRepository) getQueryString(params []map[string]string) string {
 	var out string
 	for _, param := range params {
-		out += repo.getParams(param, `{"query_string": {
-			"query": "%s",
-			"default_field": "%s"
-		}}`)
+		o := repo.getParams(param, `"%s": "%s"`)
+		out = joinParams(out, fmt.Sprintf(`{"query_string": {%s}}`, o))
 	}
-
 	return out
 }
 

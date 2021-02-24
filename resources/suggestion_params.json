@@ -10,6 +10,9 @@
 		"queryString": [{
 			"query": "(pro OR professional)",
 			"defaultField": "PublisherType"
+		},{
+			"query": "(sell OR let)",
+			"defaultField": "Type"
 		}]
 	},
 	"default": {
