@@ -79,14 +79,13 @@ type AdConf struct {
 	MinDisplayedAds        int                                 `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
 	MaxDisplayedAds        int                                 `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
 	DefaultRequestedAdsQty int                                 `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
-	SuggestionsParams      map[string]map[string][]interface{} `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
-	OldSuggestionsParams   []string                            `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
+	SuggestionsParams      map[string]map[string][]interface{} `env:"SUGGESTIONS_PARAMS"`
 	ContactPath            string                              `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"`
 }
 
 // ResourcesConf resources path settings
 type ResourcesConf struct {
-	SuggestionsParamsURL string `env:"SUGGESTIONS_PARAMS_URL" envDefault:"resources/suggestion_params.json"`
+	SuggestionsParams string `env:"SUGGESTIONS_PARAMS" envDefault:"resources/suggestion_params.json"`
 }
 
 // ElasticSearchConf configuration for the elastic search client

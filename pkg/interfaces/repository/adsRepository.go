@@ -96,8 +96,7 @@ func (repo *adsRepository) GetAds(
 	filtersParams := repo.getFilters(filters)
 
 	if len(priceRange) > 0 {
-		priceParams := repo.getPriceParameters(priceRange)
-
+		priceParams := repo.processPriceTemplate(priceRange)
 		switch priceRange["type"] {
 		case "must":
 			mustsParams = joinParams(mustsParams, priceParams)
@@ -163,8 +162,9 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
-// getPriceParameters
-func (repo *adsRepository) getPriceParameters(priceRange map[string]string) string {
+// processPriceTemplate returns the range query template as string
+// to be used in the final query
+func (repo *adsRepository) processPriceTemplate(priceRange map[string]string) string {
 	params := map[string]string{
 		"PriceMin": priceRange["gte"],
 		"PriceMax": priceRange["lte"],
@@ -177,8 +177,7 @@ func (repo *adsRepository) getPriceParameters(priceRange map[string]string) stri
 	return query
 }
 
-// getFilters returns a string with filters
-// to be used on a query
+// getFilters returns a string with filters to be used on a query
 func (repo *adsRepository) getFilters(filters map[string]string) string {
 	return repo.getParams(filters, `{"term": {"%s.keyword": "%s"}}`)
 }
@@ -287,6 +286,8 @@ func sortedKeys(m map[string]string) (keys []string) {
 	return keys
 }
 
+// joinParams concatenates the strings in an array with a , and
+// returns the resulting string
 func joinParams(params ...string) (output string) {
 	paramsSlice := make([]string, 0)
 	for _, val := range params {

@@ -11,7 +11,8 @@ import (
 const (
 	contactField = "phonelink"
 
-	ErrGetUF = "ERR_GET_UF_VALUE"
+	ErrGetUF           = "ERR_GET_UF_VALUE"
+	ErrInvalidCarousel = "invalid carousel: '%s'"
 )
 
 // GetSuggestions contains the repositories needed to retrieve ads suggestions
@@ -31,6 +32,7 @@ type GetSuggestionsLogger interface {
 	LimitExceeded(size, maxDisplayedAds, defaultAdsQty int)
 	MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int)
 	ErrorGettingAd(listID string, err error)
+	ErrorGettingUF(err error)
 	ErrorGettingAds(musts, shoulds, mustsNot map[string]string, err error)
 	NotEnoughAds(listID string, lenAds int)
 	ErrorGettingAdsContact(listID string, err error)
@@ -61,16 +63,20 @@ func (interactor *GetSuggestions) GetProSuggestions(
 
 	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
 		interactor.Logger.InvalidCarousel(carouselType)
-		err = fmt.Errorf("invalid carousel: '%s'", carouselType)
+		err = fmt.Errorf(ErrInvalidCarousel, carouselType)
 		return
 	}
 
-	priceParameters := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	priceParameters, err := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	if err != nil {
+		interactor.Logger.ErrorGettingUF(err)
+		return
+	}
+	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
 	mustParameters := getMustsParams(ad, interactor.SuggestionsParams[carouselType]["must"])
 	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams[carouselType]["should"])
 	mustNotParameters := getMustNotParams(ad, interactor.SuggestionsParams[carouselType]["mustNot"])
 	filtersParameters := getFilterParams(ad, interactor.SuggestionsParams[carouselType]["filter"])
-	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
 
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		mustParameters, shouldParameters, mustNotParameters, filtersParameters,
@@ -83,7 +89,7 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAds(mustParameters, shouldParameters, mustNotParameters, err)
 		return
 	}
-	// log info if there is not enough ads to return
+
 	if len(ads) < interactor.MinDisplayedAds {
 		interactor.Logger.NotEnoughAds(listID, len(ads))
 		return []domain.Ad{}, nil
@@ -121,35 +127,21 @@ func (interactor *GetSuggestions) getAdsContact(
 	return suggestions, err
 }
 
-// getMustsParams returns a map with mandatory values
-func getMustsParams(
-	ad domain.Ad,
-	suggestionsParams []interface{},
-) (out map[string]string) {
-	out = make(map[string]string)
-	out["PublisherType"] = string(domain.Pro)
-	adMap := ad.GetFieldsMapString()
-
-	for _, val := range suggestionsParams {
-		v := val.(string)
-		if adMap[strings.ToLower(v)] != "" {
-			out[v] = adMap[strings.ToLower(v)]
-		}
-	}
-	return
-}
-
-// getPriceRange returns a map with range values
+// getPriceRange returns a map with price range values
 func (interactor *GetSuggestions) getPriceRange(
 	ad domain.Ad,
 	priceRangeSlice []interface{},
-) (out map[string]string) {
+) (out map[string]string, err error) {
 	out = make(map[string]string)
 	if len(priceRangeSlice) <= 0 {
 		return
 	}
 
-	uf, _ := interactor.IndicatorsRepository.GetUF()
+	uf, err := interactor.IndicatorsRepository.GetUF()
+	if err != nil {
+		return
+	}
+
 	priceRange := priceRangeSlice[0].(map[string]interface{})
 
 	out["uf"] = fmt.Sprintf("%v", uf)
@@ -175,55 +167,31 @@ func (interactor *GetSuggestions) getPriceRange(
 	return
 }
 
-// getShouldsParams returns a map with optional values
-func getShouldsParams(
-	ad domain.Ad,
-	suggestionsParams []interface{},
-) (out map[string]string) {
-	out = make(map[string]string)
+// getMustsParams returns a map with mandatory values
+func getMustsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
 	adMap := ad.GetFieldsMapString()
-
-	//should params can come with syntax 'Params.{param} or simply {param}'
-	//se we need to split the string with '.' in the first syntax is used to
-	//get the value
-	for _, shoulParam := range suggestionsParams {
-		shoulParamKey := shoulParam.(string)
-		shoulParamSlice := strings.Split(shoulParamKey, ".")
-		shouldParamValue := shoulParamSlice[len(shoulParamSlice)-1]
-
-		if adMap[strings.ToLower(shouldParamValue)] != "" {
-			out[shoulParamKey] = adMap[strings.ToLower(shouldParamValue)]
-		}
-	}
+	out = getParams(adMap, suggestionsParams)
+	out["PublisherType"] = string(domain.Pro)
 	return
+}
+
+// getShouldsParams returns a map with optional values
+func getShouldsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
+	adMap := ad.GetFieldsMapString()
+	return getParams(adMap, suggestionsParams)
 }
 
 // getMustNotParams returns a map with excluded values
 func getMustNotParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	out = make(map[string]string)
 	adMap := ad.GetFieldsMapString()
-
-	for _, val := range suggestionsParams {
-		v := val.(string)
-		if adMap[strings.ToLower(v)] != "" {
-			out[v] = adMap[strings.ToLower(v)]
-		}
-	}
-	return
+	return getParams(adMap, suggestionsParams)
 }
 
-// getFilterParams returns a map with filter values
+// getFilterParams returns a map with filter values which dont add score
+// to the resulting documents
 func getFilterParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	out = make(map[string]string)
 	adMap := ad.GetFieldsMapString()
-
-	for _, val := range suggestionsParams {
-		v := val.(string)
-		if adMap[strings.ToLower(v)] != "" {
-			out[v] = adMap[strings.ToLower(v)]
-		}
-	}
-	return
+	return getParams(adMap, suggestionsParams)
 }
 
 // getDecayFunctionParams returns a map with decay function values
@@ -244,12 +212,16 @@ func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{}, c
 	return
 }
 
+// calculateMinMaxPriceRange calculates the minimum and maximum
+// price for a range query, where a value is substracted and added to the price
+// of the ad being requested
 func calculateMinMaxPriceRange(
 	adPrice, uf float64,
 	adCurrency string,
 	minusValue, plusValue int,
 ) (string, string) {
-	// if ad currency is 'peso', divide price by UF
+	// if ad currency is 'peso', divide price by UF to convert to equivalent
+	// UF value
 	if adCurrency == "peso" {
 		adPrice /= uf
 	} else {
@@ -260,4 +232,27 @@ func calculateMinMaxPriceRange(
 	maxPrice := adPrice + float64(plusValue)
 
 	return fmt.Sprintf("%v", minPrice), fmt.Sprintf("%v", maxPrice)
+}
+
+// getParams function that reads the parameters to be used in the queries
+// must, mustNot, should and filter, where they can come in the string form
+// Params.{param} or simply as {param}
+func getParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
+	out = make(map[string]string)
+	for _, param := range suggestionsParams {
+		paramKey := param.(string)
+		var paramValue string
+
+		if strings.HasPrefix(paramKey, "Params.") {
+			paramSlice := strings.Split(paramKey, ".")
+			paramValue = strings.ToLower(paramSlice[len(paramSlice)-1])
+		} else {
+			paramValue = strings.ToLower(paramKey)
+		}
+
+		if adMap[paramValue] != "" {
+			out[paramKey] = adMap[paramValue]
+		}
+	}
+	return
 }

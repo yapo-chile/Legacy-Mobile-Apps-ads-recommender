@@ -114,7 +114,7 @@ func main() { //nolint: funlen
 	)
 
 	if err := infrastructure.LoadJSONFromFile(
-		conf.ResourcesConf.SuggestionsParamsURL,
+		conf.ResourcesConf.SuggestionsParams,
 		&conf.AdConf.SuggestionsParams,
 	); err != nil {
 		panic(fmt.Sprintf("error loading allowed message text file: %s", err.Error()))
@@ -168,7 +168,7 @@ func main() { //nolint: funlen
 					{
 						Name:         "Get suggestions for a specific ad",
 						Method:       "GET",
-						Pattern:      "/suggestions/{carousel:.*}/{listID:.*}/pro",
+						Pattern:      "/suggestions/{carousel:[a-z_]+}/{listID:\\d+}/pro",
 						Handler:      &getProSuggestionsHandler,
 						RequestCache: "10s",
 					}},
