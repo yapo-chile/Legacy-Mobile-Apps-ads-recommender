@@ -119,7 +119,6 @@ func main() { //nolint: funlen
 	); err != nil {
 		panic(fmt.Sprintf("error loading allowed message text file: %s", err.Error()))
 	}
-	logger.Info("SuggestionsParams %+v", conf.AdConf.SuggestionsParams)
 
 	// Interactors
 	getSuggestions := usecases.GetSuggestions{
@@ -168,7 +167,7 @@ func main() { //nolint: funlen
 					{
 						Name:         "Get suggestions for a specific ad",
 						Method:       "GET",
-						Pattern:      "/suggestions/{carousel:[a-z_]+}/{listID:\\d+}/pro",
+						Pattern:      "/suggestions/{carousel:[a-z_]+}/{listID:\\d+}",
 						Handler:      &getProSuggestionsHandler,
 						RequestCache: "10s",
 					}},

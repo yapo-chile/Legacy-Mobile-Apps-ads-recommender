@@ -168,7 +168,7 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
-// getBoolParameters returns a string with bool parameters
+// getQueryString returns a string with query string parameters
 // to be used on a query as must, should or must_not
 func (repo *adsRepository) getQueryString(params []map[string]string) string {
 	var out string

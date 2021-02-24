@@ -1,18 +1,43 @@
 {
+	"post_adreply_inmo_apps": {
+		"must": ["RegionID","CommuneID","CategoryID"],
+		"should": ["Params.EstateType","Params.Rooms"],
+		"mustNot":["ListID"],
+		"priceRange": [{
+			"gte": "7000",
+			"lte": "9000"
+		}],
+		"queryString": [{
+			"query": "(private OR pro OR professional)",
+			"defaultField": "PublisherType"
+		}],
+		"decayFunc": [{
+			"name": "gauss",
+			"field": "ListTime",
+			"origin": "now/1d",
+			"offset": "1d",
+			"scale": "60d"
+		}]
+	},
 	"post_adreply_inmo": {
 		"must": ["RegionID","CommuneID","CategoryID"],
 		"should": ["Params.EstateType","Params.Rooms"],
 		"mustNot":["ListID"],
 		"priceRange": [{
 			"gte": "1000",
-			"lte": "9000"
+			"lte": "1000",
+			"calculate": "true"
 		}],
 		"queryString": [{
 			"query": "(pro OR professional)",
 			"defaultField": "PublisherType"
-		},{
-			"query": "(sell OR let)",
-			"defaultField": "Type"
+		}],
+		"decayFunc": [{
+			"name": "gauss",
+			"field": "ListTime",
+			"origin": "now/1d",
+			"offset": "1d",
+			"scale": "60d"
 		}]
 	},
 	"default": {
