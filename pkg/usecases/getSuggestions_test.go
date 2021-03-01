@@ -51,7 +51,7 @@ func (m *mockAdsRepository) GetAds(
 	queryStrings []map[string]string,
 	size, from int,
 ) ([]domain.Ad, error) {
-	args := m.Called(musts, shoulds, mustsNot, filters)
+	args := m.Called(musts, shoulds, mustsNot, filters, priceRange, decay, queryStrings, size, from)
 	return args.Get(0).([]domain.Ad), args.Error(1)
 }
 
@@ -76,8 +76,8 @@ func (m *mockIndicatorsRepository) GetUF() (float64, error) {
 }
 
 func getDefaultSuggestionParams() (out map[string]map[string][]interface{}) {
-	out = make(map[string]map[string][]interface{}, 0)
-	out["default"] = make(map[string][]interface{}, 0)
+	out = make(map[string]map[string][]interface{})
+	out["default"] = make(map[string][]interface{})
 
 	out["default"]["must"] = []interface{}{"Category", "SubCategory"}
 	out["default"]["should"] = []interface{}{
@@ -106,11 +106,13 @@ func getDefaultSuggestionParams() (out map[string]map[string][]interface{}) {
 	return
 }
 
-func getSuggestionParams(carousel string, params ...map[string][]interface{}) (out map[string]map[string][]interface{}) {
-	out = make(map[string]map[string][]interface{}, 0)
+func getSuggestionParams(
+	carousel string,
+	params ...map[string][]interface{}) (out map[string]map[string][]interface{}) {
+	out = make(map[string]map[string][]interface{})
 	out["default"] = getDefaultSuggestionParams()["default"]
 	if carousel != "default" {
-		out[carousel] = make(map[string][]interface{}, 0)
+		out[carousel] = make(map[string][]interface{})
 	}
 
 	for _, param := range params {
@@ -135,7 +137,7 @@ func TestGetProSuggestionsOK(t *testing.T) {
 		},
 	}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mIndicatorsRepo.On("GetUF").Return(float64(28000), nil)
 	i := GetSuggestions{
 		SuggestionsRepo:      &mAdsRepo,
@@ -158,7 +160,7 @@ func TestGetProSuggestionsMaxDisplayedAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("LimitExceeded", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -182,7 +184,7 @@ func TestGetProSuggestionsMinDisplayedAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}, {ListID: 3, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("MinimumQtyNotEnough", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -206,7 +208,7 @@ func TestGetProSuggestionsNotEnoughAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("NotEnoughAds", mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -249,7 +251,7 @@ func TestGetProSuggestionsGetAdsErr(t *testing.T) {
 	mLogger := mockGetSuggestionsLogger{}
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]domain.Ad{}, fmt.Errorf(""))
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]domain.Ad{}, fmt.Errorf(""))
 	mLogger.On("ErrorGettingAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -274,7 +276,7 @@ func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, nil)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -299,7 +301,7 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, fmt.Errorf("error"))
 	mLogger.On("ErrorGettingAdsContact", mock.Anything, mock.Anything)
 	i := GetSuggestions{
@@ -451,8 +453,9 @@ func TestGetPriceRangeOK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc.name), func(t *testing.T) {
+	for _, testCase := range testCases {
+		tc := testCase
+		t.Run(tc.name, func(t *testing.T) {
 			output, err := i.getPriceRange(ad, tc.priceRange)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expected, output)
@@ -491,8 +494,9 @@ func TestCalculateMinMaxPriceRange(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc.name), func(t *testing.T) {
+	for _, testCase := range testCases {
+		tc := testCase
+		t.Run(tc.name, func(t *testing.T) {
 			min, max := calculateMinMaxPriceRange(tc.adPrice, tc.uf, tc.adCurrency, tc.minusValue, tc.plusValue)
 			assert.Equal(t, min, tc.expectedMin)
 			assert.Equal(t, max, tc.expectedMax)
@@ -539,8 +543,9 @@ func TestGetParams(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc.name), func(t *testing.T) {
+	for _, testCase := range testCases {
+		tc := testCase
+		t.Run(tc.name, func(t *testing.T) {
 			params := getParams(tc.adMap, tc.suggestionsParams)
 			assert.Equal(t, tc.expected, params)
 		})
@@ -592,8 +597,9 @@ func TestGetDecayFunctionParams(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc.name), func(t *testing.T) {
+	for _, testCase := range testCases {
+		tc := testCase
+		t.Run(tc.name, func(t *testing.T) {
 			decayParams := getDecayFunctionParams(tc.decayFuncConf, tc.carouselType)
 			assert.Equal(t, tc.expected, decayParams)
 		})
@@ -651,8 +657,9 @@ func TestGetQueryStringParams(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc.name), func(t *testing.T) {
+	for _, testCase := range testCases {
+		tc := testCase
+		t.Run(tc.name, func(t *testing.T) {
 			decayParams := getQueryStringParams(tc.queryStringSlice)
 			assert.Equal(t, tc.expected, decayParams)
 		})

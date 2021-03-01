@@ -135,13 +135,13 @@ func (interactor *GetSuggestions) getPriceRange(
 	priceRangeSlice []interface{},
 ) (out map[string]string, err error) {
 	out = make(map[string]string)
-	if len(priceRangeSlice) <= 0 {
-		return
+	if len(priceRangeSlice) == 0 {
+		return out, err
 	}
 
 	uf, err := interactor.IndicatorsRepository.GetUF()
 	if err != nil {
-		return
+		return out, err
 	}
 
 	priceRange := priceRangeSlice[0].(map[string]interface{})
@@ -166,13 +166,13 @@ func (interactor *GetSuggestions) getPriceRange(
 	} else {
 		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
 	}
-	return
+	return out, err
 }
 
 // getQueryStringParams returns a map query string values
 func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]string) {
 	out = make([]map[string]string, 0)
-	if len(queryStringSlice) <= 0 {
+	if len(queryStringSlice) == 0 {
 		return
 	}
 
@@ -213,9 +213,10 @@ func getFilterParams(ad domain.Ad, suggestionsParams []interface{}) (out map[str
 }
 
 // getDecayFunctionParams returns a map with decay function values
-func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{}, carouselType string) (out map[string]string) {
+func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{},
+	carouselType string) (out map[string]string) {
 	out = make(map[string]string)
-	if len(decayFuncConf[carouselType]["decayFunc"]) <= 0 {
+	if len(decayFuncConf[carouselType]["decayFunc"]) == 0 {
 		carouselType = "default"
 	}
 
@@ -231,7 +232,7 @@ func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{}, c
 }
 
 // calculateMinMaxPriceRange calculates the minimum and maximum
-// price for a range query, where a value is substracted and added to the price
+// price for a range query, where a value is subtracted and added to the price
 // of the ad being requested
 func calculateMinMaxPriceRange(
 	adPrice, uf float64,

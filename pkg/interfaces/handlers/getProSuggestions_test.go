@@ -20,6 +20,7 @@ func (m *mockGetSuggestions) GetProSuggestions(
 	listID string,
 	optionalParams []string,
 	size, from int,
+	carouselType string,
 ) (ads []domain.Ad, err error) {
 	args := m.Called(listID, size, from)
 	return args.Get(0).([]domain.Ad), args.Error(1)

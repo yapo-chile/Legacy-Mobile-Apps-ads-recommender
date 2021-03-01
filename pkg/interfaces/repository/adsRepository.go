@@ -90,7 +90,6 @@ func (repo *adsRepository) GetAds(
 	queryString []map[string]string,
 	size, from int,
 ) (ads []domain.Ad, err error) {
-
 	mustsParams := repo.getBoolParameters(musts)
 	mustsNotParams := repo.getBoolParameters(mustsNot)
 	shouldsParams := repo.getBoolParameters(shoulds)
