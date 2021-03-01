@@ -137,7 +137,9 @@ func TestGetProSuggestionsOK(t *testing.T) {
 		},
 	}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mIndicatorsRepo.On("GetUF").Return(float64(28000), nil)
 	i := GetSuggestions{
 		SuggestionsRepo:      &mAdsRepo,
@@ -160,7 +162,9 @@ func TestGetProSuggestionsMaxDisplayedAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mLogger.On("LimitExceeded", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -184,7 +188,9 @@ func TestGetProSuggestionsMinDisplayedAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}, {ListID: 3, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mLogger.On("MinimumQtyNotEnough", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -208,7 +214,9 @@ func TestGetProSuggestionsNotEnoughAds(t *testing.T) {
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mLogger.On("NotEnoughAds", mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -251,7 +259,9 @@ func TestGetProSuggestionsGetAdsErr(t *testing.T) {
 	mLogger := mockGetSuggestionsLogger{}
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]domain.Ad{}, fmt.Errorf(""))
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return([]domain.Ad{}, fmt.Errorf(""))
 	mLogger.On("ErrorGettingAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -276,7 +286,9 @@ func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, nil)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -301,7 +313,9 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, fmt.Errorf("error"))
 	mLogger.On("ErrorGettingAdsContact", mock.Anything, mock.Anything)
 	i := GetSuggestions{

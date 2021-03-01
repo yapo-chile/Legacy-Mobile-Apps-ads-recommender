@@ -337,7 +337,7 @@ func TestGetAdsQueryString(t *testing.T) {
 		regionsConf:    &mDataMapping,
 	}
 	options := map[string]string{}
-	queryString := []map[string]string{map[string]string{"query": "(private OR pro OR professional)",
+	queryString := []map[string]string{{"query": "(private OR pro OR professional)",
 		"defaultField": "PublisherType"}}
 	resp, err := repo.GetAds(options, options, options, options, options, options, queryString, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
