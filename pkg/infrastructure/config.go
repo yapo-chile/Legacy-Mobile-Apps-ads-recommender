@@ -53,7 +53,6 @@ type ProCarouselClientConf struct {
 	GetHealthcheckPath string `env:"HEALTH_PATH" envDefault:"/get/healthcheck"`
 }
 
-// ProfileConf holds configuration to send http request to profile
 // CorsConf holds cors headers
 type CorsConf struct {
 	Enabled bool   `env:"ENABLED" envDefault:"false"`

@@ -16,3 +16,8 @@ type AdsRepository interface {
 type AdContactRepo interface {
 	GetAdsPhone(ads []domain.Ad) (phones map[string]string, err error)
 }
+
+// IndicatorsRepository defines the methods that a Indicators repository should have
+type IndicatorsRepository interface {
+	GetUF() (float64, error)
+}

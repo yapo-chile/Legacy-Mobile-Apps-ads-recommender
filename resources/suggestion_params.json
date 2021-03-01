@@ -44,6 +44,10 @@
 		"must": ["Category","SubCategory"],
 		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
 		"mustNot":["ListID"],
+		"queryString": [{
+			"query": "(pro OR professional)",
+			"defaultField": "PublisherType"
+		}],
 		"decayFunc": [{
 			"name": "gauss",
 			"field": "ListTime",

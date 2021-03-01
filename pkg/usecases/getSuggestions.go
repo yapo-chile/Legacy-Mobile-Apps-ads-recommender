@@ -10,8 +10,9 @@ import (
 
 const (
 	contactField = "phonelink"
-
-	ErrGetUF           = "ERR_GET_UF_VALUE"
+	// ErrGetUF error code when get uf fails
+	ErrGetUF = "ERR_GET_UF_VALUE"
+	// ErrInvalidCarousel error text when an invalid carousel is requested
 	ErrInvalidCarousel = "invalid carousel: '%s'"
 )
 
@@ -63,14 +64,13 @@ func (interactor *GetSuggestions) GetProSuggestions(
 
 	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
 		interactor.Logger.InvalidCarousel(carouselType)
-		err = fmt.Errorf(ErrInvalidCarousel, carouselType)
-		return
+		return []domain.Ad{}, fmt.Errorf(ErrInvalidCarousel, carouselType)
 	}
 
 	priceParameters, err := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
 	if err != nil {
 		interactor.Logger.ErrorGettingUF(err)
-		return
+		return []domain.Ad{}, err
 	}
 	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
 	queryStringParameters := getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
@@ -190,8 +190,7 @@ func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]stri
 // getMustsParams returns a map with mandatory values
 func getMustsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
 	adMap := ad.GetFieldsMapString()
-	out = getParams(adMap, suggestionsParams)
-	return
+	return getParams(adMap, suggestionsParams)
 }
 
 // getShouldsParams returns a map with optional values
@@ -244,9 +243,9 @@ func calculateMinMaxPriceRange(
 	if adCurrency == "peso" {
 		adPrice /= uf
 	} else {
+		// if currency is 'uf', divide by 100, because uf price has 2 extra zeroes
 		adPrice /= 100
 	}
-
 	minPrice := adPrice - float64(minusValue)
 	maxPrice := adPrice + float64(plusValue)
 
