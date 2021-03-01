@@ -113,3 +113,20 @@ func (m *mockRequest) GetTimeOut() time.Duration {
 	args := m.Called()
 	return args.Get(0).(time.Duration)
 }
+
+// MockHTTPCachedHandler mocks HTTPCachedHandler
+type MockHTTPCachedHandler struct {
+	mock.Mock
+}
+
+// Send mocks HTTPCachedHandler's Send method
+func (m *MockHTTPCachedHandler) Send(r HTTPRequest) (interface{}, error) {
+	args := m.Called(r)
+	return args.Get(0), args.Error(1)
+}
+
+// NewRequest mocks HTTPCachedHandler's NewRequest method
+func (m *MockHTTPCachedHandler) NewRequest() HTTPRequest {
+	args := m.Called()
+	return args.Get(0).(HTTPRequest)
+}

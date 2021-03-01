@@ -15,5 +15,7 @@ func TestGetSuggestionsLogger(t *testing.T) {
 	l.ErrorGettingAds(mMap, mMap, mMap, fmt.Errorf(""))
 	l.NotEnoughAds("", 0)
 	l.ErrorGettingAdsContact("", fmt.Errorf(""))
+	l.ErrorGettingUF(fmt.Errorf(""))
+	l.InvalidCarousel("")
 	m.AssertExpectations(t)
 }
