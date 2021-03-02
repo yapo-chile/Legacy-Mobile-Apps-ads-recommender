@@ -63,7 +63,7 @@ type CorsConf struct {
 
 // EtcdConf configure how to read configuration from remote Etcd service
 type EtcdConf struct {
-	Host       string `env:"HOST" envDefault:"http://host.docker.internal:2379"`
+	Host       string `env:"HOST" envDefault:"http://etcd-server.yapo.cl"`
 	LastUpdate string `env:"LAST_UPDATE" envDefault:"/last_update"`
 	Prefix     string `env:"PREFIX" envDefault:"/v2/keys"`
 	RegionPath string `env:"REGION_PATH" envDefault:"/public/location/regions.json"`
@@ -89,8 +89,8 @@ type ResourcesConf struct {
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev09_1613489314"`
-	Host                string        `env:"HOST" envDefault:"http://host.docker.internal"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev09"`
+	Host                string        `env:"HOST" envDefault:"http://elastic"`
 	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
 	MaxIdleConnsPerHost int           `env:"MAX_IDLE_CONNECTIONS_PER_HOST" envDefault:"10"`

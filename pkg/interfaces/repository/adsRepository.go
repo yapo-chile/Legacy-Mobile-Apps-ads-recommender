@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -136,7 +135,6 @@ func (repo *adsRepository) getAdsProcess(
 	size, from int,
 ) (ads []domain.Ad, err error) {
 	query, err := repo.ProcessTemplate(templateName, params)
-	log.Printf("query: %+v", query)
 	if err != nil {
 		return
 	}
