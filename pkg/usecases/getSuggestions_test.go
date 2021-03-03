@@ -335,52 +335,6 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetShouldsParamsOK(t *testing.T) {
-	ad := domain.Ad{
-		ListID:   1000,
-		Price:    2000,
-		AdParams: map[string]string{"a": "test", "b": "test2"},
-	}
-	suggestionsParams := []interface{}{"ListID", "Price", "Params.a", "b", "c"}
-	expected := map[string]string{"ListID": "1000", "Price": "2000", "Params.a": "test", "b": "test2"}
-	result := getShouldsParams(ad, suggestionsParams)
-	assert.Equal(t, expected, result)
-}
-
-func TestGetMustParamsOK(t *testing.T) {
-	ad := domain.Ad{
-		ListID:   1000,
-		Price:    2000,
-		AdParams: map[string]string{"a": "test", "b": "test2"},
-	}
-	suggestionsParams := []interface{}{"ListID", "Price", "Params.a", "b", "c"}
-	expected := map[string]string{"ListID": "1000", "Price": "2000", "Params.a": "test", "b": "test2"}
-	result := getMustsParams(ad, suggestionsParams)
-	assert.Equal(t, expected, result)
-}
-func TestGetMustNotParamsOK(t *testing.T) {
-	ad := domain.Ad{
-		ListID:   1000,
-		Price:    2000,
-		AdParams: map[string]string{"a": "test", "b": "test2"},
-	}
-	suggestionsParams := []interface{}{"ListID", "Price", "Params.a", "b", "c"}
-	expected := map[string]string{"ListID": "1000", "Price": "2000", "Params.a": "test", "b": "test2"}
-	result := getMustNotParams(ad, suggestionsParams)
-	assert.Equal(t, expected, result)
-}
-func TestGetFilterParamsOK(t *testing.T) {
-	ad := domain.Ad{
-		ListID:   1000,
-		Price:    2000,
-		AdParams: map[string]string{"a": "test", "b": "test2"},
-	}
-	suggestionsParams := []interface{}{"ListID", "Price", "Params.a", "b", "c"}
-	expected := map[string]string{"ListID": "1000", "Price": "2000", "Params.a": "test", "b": "test2"}
-	result := getFilterParams(ad, suggestionsParams)
-	assert.Equal(t, expected, result)
-}
-
 func TestGetProSuggestionsGetAdsInvalidCarousel(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
@@ -518,7 +472,7 @@ func TestCalculateMinMaxPriceRange(t *testing.T) {
 	}
 }
 
-func TestGetParams(t *testing.T) {
+func TestGetSliceParams(t *testing.T) {
 	testCases := []struct {
 		name              string
 		adMap             map[string]string
@@ -560,7 +514,7 @@ func TestGetParams(t *testing.T) {
 	for _, testCase := range testCases {
 		tc := testCase
 		t.Run(tc.name, func(t *testing.T) {
-			params := getParams(tc.adMap, tc.suggestionsParams)
+			params := getSliceParams(tc.adMap, tc.suggestionsParams)
 			assert.Equal(t, tc.expected, params)
 		})
 	}

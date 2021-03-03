@@ -61,7 +61,6 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
-
 	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
 		interactor.Logger.InvalidCarousel(carouselType)
 		return []domain.Ad{}, fmt.Errorf(ErrInvalidCarousel, carouselType)
@@ -74,17 +73,22 @@ func (interactor *GetSuggestions) GetProSuggestions(
 	}
 	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
 	queryStringParameters := getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
-	mustParameters := getMustsParams(ad, interactor.SuggestionsParams[carouselType]["must"])
-	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams[carouselType]["should"])
-	mustNotParameters := getMustNotParams(ad, interactor.SuggestionsParams[carouselType]["mustNot"])
-	filtersParameters := getFilterParams(ad, interactor.SuggestionsParams[carouselType]["filter"])
+	adMap := ad.GetFieldsMapString()
+	mustParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
+	shouldParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
+	mustNotParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
+	filtersParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
 
 	ads, err = interactor.SuggestionsRepo.GetAds(
-		mustParameters, shouldParameters, mustNotParameters, filtersParameters,
+		mustParameters,
+		shouldParameters,
+		mustNotParameters,
+		filtersParameters,
 		priceParameters,
 		decayParameters,
 		queryStringParameters,
-		size, from,
+		size,
+		from,
 	)
 
 	if err != nil {
@@ -161,8 +165,13 @@ func (interactor *GetSuggestions) getPriceRange(
 		minusPrice, _ := strconv.Atoi(priceRange["gte"].(string))
 		plusPrice, _ := strconv.Atoi(priceRange["lte"].(string))
 
-		out["gte"], out["lte"] =
-			calculateMinMaxPriceRange(adPrice, uf, adCurrency, minusPrice, plusPrice)
+		out["gte"], out["lte"] = calculateMinMaxPriceRange(
+			adPrice,
+			uf,
+			adCurrency,
+			minusPrice,
+			plusPrice,
+		)
 	} else {
 		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
 	}
@@ -185,31 +194,6 @@ func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]stri
 		out = append(out, outTmp)
 	}
 	return
-}
-
-// getMustsParams returns a map with mandatory values
-func getMustsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	adMap := ad.GetFieldsMapString()
-	return getParams(adMap, suggestionsParams)
-}
-
-// getShouldsParams returns a map with optional values
-func getShouldsParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	adMap := ad.GetFieldsMapString()
-	return getParams(adMap, suggestionsParams)
-}
-
-// getMustNotParams returns a map with excluded values
-func getMustNotParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	adMap := ad.GetFieldsMapString()
-	return getParams(adMap, suggestionsParams)
-}
-
-// getFilterParams returns a map with filter values which dont add score
-// to the resulting documents
-func getFilterParams(ad domain.Ad, suggestionsParams []interface{}) (out map[string]string) {
-	adMap := ad.GetFieldsMapString()
-	return getParams(adMap, suggestionsParams)
 }
 
 // getDecayFunctionParams returns a map with decay function values
@@ -253,10 +237,10 @@ func calculateMinMaxPriceRange(
 	return fmt.Sprintf("%v", minPrice), fmt.Sprintf("%v", maxPrice)
 }
 
-// getParams function that reads the parameters to be used in the queries
+// getSliceParams function that reads the parameters to be used in the queries
 // must, mustNot, should and filter, where they can come in the string form
 // Params.{param} or simply as {param}
-func getParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
+func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
 	out = make(map[string]string)
 	for _, param := range suggestionsParams {
 		paramKey := param.(string)

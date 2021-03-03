@@ -28,6 +28,7 @@ type GetProSuggestionsHandler struct {
 
 type getProSuggestionsHandlerInput struct {
 	ListID         string   `path:"listID"`
+	From           int      `query:"from"`
 	Limit          int      `query:"limit"`
 	OptionalParams []string `query:"params"`
 	CarouselType   string   `path:"carousel"`
@@ -166,7 +167,7 @@ func (h *GetProSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
 		in.ListID,
 		in.OptionalParams,
 		in.Limit,
-		0,
+		in.From,
 		in.CarouselType,
 	)
 	if errSuggestions != nil {

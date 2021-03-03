@@ -33,8 +33,14 @@ func TestGetAdOK(t *testing.T) {
 		getAdTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -78,7 +84,8 @@ func TestGetAdNotEnough(t *testing.T) {
 	}
 	mHandler.On(
 		"Search",
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`{}`, nil)
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(`{}`, nil)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -99,8 +106,14 @@ func TestGetAdsOK(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -220,8 +233,14 @@ func TestGetAdsPriceRangeMust(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -247,8 +266,14 @@ func TestGetAdsPriceRangeShould(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -274,8 +299,14 @@ func TestGetAdsPriceRangeFilter(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -301,8 +332,14 @@ func TestGetAdsPriceRangeMustNot(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,
@@ -328,8 +365,14 @@ func TestGetAdsQueryString(t *testing.T) {
 		getAdsTemplateName: templateValue,
 	}
 	mDataMapping.On("Get", mock.Anything).Return("test")
-	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(`
-    {"hits" : {"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]}}`, nil)
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
 
 	repo := adsRepository{
 		elasticHandler: &mHandler,

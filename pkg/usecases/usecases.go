@@ -8,5 +8,9 @@ import (
 type GetSuggestionsInteractor interface {
 	// GetProSuggestions will get all suggestions for the given listID
 	GetProSuggestions(
-		listID string, optionalParams []string, size, from int, carousel string) (ads []domain.Ad, err error)
+		listID string,
+		optionalParams []string,
+		size, from int,
+		carousel string,
+	) (ads []domain.Ad, err error)
 }
