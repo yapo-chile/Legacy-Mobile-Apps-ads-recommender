@@ -89,7 +89,7 @@ type ResourcesConf struct {
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev09"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads"`
 	Host                string        `env:"HOST" envDefault:"http://elastic"`
 	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
