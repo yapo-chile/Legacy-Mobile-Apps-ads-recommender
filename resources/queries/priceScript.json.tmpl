@@ -1,0 +1,12 @@
+{ "script" : {
+    "script" : {
+      "lang": "painless",
+      "source": "if(doc['Price'].size() != 0) {if(doc['Params.Currency.keyword'].size() != 0) {if(doc['Params.Currency.keyword'].value == 'uf') {doc['Price'].value / 100 <= params.priceMax && doc['Price'].value / 100 >= params.priceMin}else {doc['Price'].value / params.uf <= params.priceMax &&doc['Price'].value / params.uf >= params.priceMin}}}",
+      "params": {
+        "priceMax": {{.PriceMax}},
+        "priceMin": {{.PriceMin}},
+        "uf": {{.UF}}
+      }
+    }
+  }
+}

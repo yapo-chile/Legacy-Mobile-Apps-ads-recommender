@@ -53,7 +53,6 @@ type ProCarouselClientConf struct {
 	GetHealthcheckPath string `env:"HEALTH_PATH" envDefault:"/get/healthcheck"`
 }
 
-// ProfileConf holds configuration to send http request to profile
 // CorsConf holds cors headers
 type CorsConf struct {
 	Enabled bool   `env:"ENABLED" envDefault:"false"`
@@ -73,19 +72,24 @@ type EtcdConf struct {
 
 // AdConf configure how to get ads and how to fill some fields
 type AdConf struct {
-	ImageServerURL         string   `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"`
-	CurrencySymbol         string   `env:"CURRENCY_SYMBOL" envDefault:"$"`
-	UnitOfAccountSymbol    string   `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
-	MinDisplayedAds        int      `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
-	MaxDisplayedAds        int      `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
-	DefaultRequestedAdsQty int      `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
-	SuggestionsParams      []string `env:"SUGGESTIONS_PARAMS" envDefault:"BrandID,ModelID,Regdate,Brand,Model"`
-	ContactPath            string   `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"`
+	ImageServerURL         string                              `env:"IMAGE_SERVER_URL" envDefault:"https://img.yapo.cl/%s/%s/%s.jpg"` //nolint:lll
+	CurrencySymbol         string                              `env:"CURRENCY_SYMBOL" envDefault:"$"`
+	UnitOfAccountSymbol    string                              `env:"UNIT_OF_ACCOUNT_SYMBOL" envDefault:"UF"`
+	MinDisplayedAds        int                                 `env:"MIN_DISPLAYED_ADS" envDefault:"2"`
+	MaxDisplayedAds        int                                 `env:"MAX_DISPLAYED_ADS" envDefault:"10"`
+	DefaultRequestedAdsQty int                                 `env:"DEFAULT_DISPLAYED_ADS_QTY" envDefault:"10"`
+	SuggestionsParams      map[string]map[string][]interface{} `env:"SUGGESTIONS_PARAMS"`
+	ContactPath            string                              `env:"CONTACT_PATH" envDefault:"http://ad-contact/contact/phones"` //nolint:lll
+}
+
+// ResourcesConf resources path settings
+type ResourcesConf struct {
+	SuggestionsParams string `env:"SUGGESTIONS_PARAMS" envDefault:"resources/suggestion_params.json"`
 }
 
 // ElasticSearchConf configuration for the elastic search client
 type ElasticSearchConf struct {
-	Index               string        `env:"INDEX_ALIAS" envDefault:"ads_dev01"`
+	Index               string        `env:"INDEX_ALIAS" envDefault:"ads"`
 	Host                string        `env:"HOST" envDefault:"http://elastic"`
 	Port                string        `env:"PORT" envDefault:"9200"`
 	MaxIdleConns        int           `env:"MAX_IDLE_CONNECTIONS" envDefault:"10"`
@@ -110,6 +114,12 @@ func (cc CorsConf) GetHeaders() map[string]string {
 		"Methods": cc.Methods,
 		"Headers": cc.Headers,
 	}
+}
+
+// IndicatorsConf defines the configuration needed to communicate with indicators api
+type IndicatorsConf struct {
+	UFPath   string `env:"UF_PATH" envDefault:"https://mindicador.cl/api/uf/"`
+	CacheTTL int    `env:"CACHE_TTL" envDefault:"600000"` // time in milliseconds
 }
 
 // InBrowserCacheConf Used to handle browser cache
@@ -138,6 +148,8 @@ type Config struct {
 	ElasticSearchConf     ElasticSearchConf     `env:"ELASTIC_"`
 	EtcdConf              EtcdConf              `env:"ETCD_"`
 	AdConf                AdConf                `env:"AD_"`
+	ResourcesConf         ResourcesConf         `env:"RESOURCES_"`
+	IndicatorsConf        IndicatorsConf        `env:"INDICATORS_"`
 }
 
 // LoadFromEnv loads the config data from the environment variables

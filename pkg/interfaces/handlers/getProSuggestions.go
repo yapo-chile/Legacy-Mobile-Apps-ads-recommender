@@ -28,8 +28,10 @@ type GetProSuggestionsHandler struct {
 
 type getProSuggestionsHandlerInput struct {
 	ListID         string   `path:"listID"`
+	From           int      `query:"from"`
 	Limit          int      `query:"limit"`
 	OptionalParams []string `query:"params"`
+	CarouselType   string   `path:"carousel"`
 }
 
 // getProSuggestionsHandlerOutput struct that represents presenter output.
@@ -161,7 +163,13 @@ func (h *GetProSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
 		return err
 	}
 	in := input.(*getProSuggestionsHandlerInput)
-	results, errSuggestions := h.Interactor.GetProSuggestions(in.ListID, in.OptionalParams, in.Limit, 0)
+	results, errSuggestions := h.Interactor.GetProSuggestions(
+		in.ListID,
+		in.OptionalParams,
+		in.Limit,
+		in.From,
+		in.CarouselType,
+	)
 	if errSuggestions != nil {
 		return &goutils.Response{
 			Code: http.StatusInternalServerError,

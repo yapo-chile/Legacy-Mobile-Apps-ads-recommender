@@ -33,7 +33,7 @@ type Ad struct {
 	AdParams      map[string]string
 }
 
-// GetFieldsMap returns a map with all fields and values
+// GetFieldsMapString returns a map with all fields and values
 func (ad *Ad) GetFieldsMapString() (output map[string]string) {
 	output = map[string]string{
 		"listid":        strconv.FormatInt(ad.ListID, 10),

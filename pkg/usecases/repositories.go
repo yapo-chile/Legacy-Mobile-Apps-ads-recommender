@@ -6,7 +6,8 @@ import "github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
 type AdsRepository interface {
 	GetAd(listID string) (ad domain.Ad, err error)
 	GetAds(
-		musts, shoulds, mustsNot, filters map[string]string,
+		musts, shoulds, mustsNot, filters, ranges, decay map[string]string,
+		queryString []map[string]string,
 		size, from int,
 	) ([]domain.Ad, error)
 }
@@ -14,4 +15,9 @@ type AdsRepository interface {
 // AdContactRepo implements ad contact repository functions
 type AdContactRepo interface {
 	GetAdsPhone(ads []domain.Ad) (phones map[string]string, err error)
+}
+
+// IndicatorsRepository defines the methods that a Indicators repository should have
+type IndicatorsRepository interface {
+	GetUF() (float64, error)
 }

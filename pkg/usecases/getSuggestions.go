@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -9,17 +10,22 @@ import (
 
 const (
 	contactField = "phonelink"
+	// ErrGetUF error code when get uf fails
+	ErrGetUF = "ERR_GET_UF_VALUE"
+	// ErrInvalidCarousel error text when an invalid carousel is requested
+	ErrInvalidCarousel = "invalid carousel: '%s'"
 )
 
 // GetSuggestions contains the repositories needed to retrieve ads suggestions
 type GetSuggestions struct {
-	SuggestionsRepo   AdsRepository
-	AdContact         AdContactRepo
-	MinDisplayedAds   int
-	RequestedAdsQty   int
-	MaxDisplayedAds   int
-	SuggestionsParams []string
-	Logger            GetSuggestionsLogger
+	SuggestionsRepo      AdsRepository
+	AdContact            AdContactRepo
+	MinDisplayedAds      int
+	RequestedAdsQty      int
+	MaxDisplayedAds      int
+	SuggestionsParams    map[string]map[string][]interface{}
+	Logger               GetSuggestionsLogger
+	IndicatorsRepository IndicatorsRepository
 }
 
 // GetSuggestionsLogger defines the logger methods that will be used for this usecase
@@ -27,9 +33,11 @@ type GetSuggestionsLogger interface {
 	LimitExceeded(size, maxDisplayedAds, defaultAdsQty int)
 	MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int)
 	ErrorGettingAd(listID string, err error)
+	ErrorGettingUF(err error)
 	ErrorGettingAds(musts, shoulds, mustsNot map[string]string, err error)
 	NotEnoughAds(listID string, lenAds int)
 	ErrorGettingAdsContact(listID string, err error)
+	InvalidCarousel(carousel string)
 }
 
 // GetProSuggestions search ad details using listId and returns a slice with ad objects
@@ -37,7 +45,7 @@ type GetSuggestionsLogger interface {
 // When suggestions retrieved on repo are less than MinDisplayedAds value, it returns empty slice.
 // If something goes wrong returns empty slice and error.
 func (interactor *GetSuggestions) GetProSuggestions(
-	listID string, optionalParams []string, size, from int,
+	listID string, optionalParams []string, size, from int, carouselType string,
 ) (ads []domain.Ad, err error) {
 	if size > interactor.MaxDisplayedAds {
 		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
@@ -53,19 +61,41 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
-	mustParameters := getMustsParams(ad)
-	shouldParameters := getShouldsParams(ad, interactor.SuggestionsParams)
-	mustNotParameters := getMustNotParams(ad)
+	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
+		interactor.Logger.InvalidCarousel(carouselType)
+		return []domain.Ad{}, fmt.Errorf(ErrInvalidCarousel, carouselType)
+	}
+
+	priceParameters, err := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	if err != nil {
+		interactor.Logger.ErrorGettingUF(err)
+		return []domain.Ad{}, err
+	}
+	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
+	queryStringParameters := getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
+	adMap := ad.GetFieldsMapString()
+	mustParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
+	shouldParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
+	mustNotParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
+	filtersParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
+
 	ads, err = interactor.SuggestionsRepo.GetAds(
-		mustParameters, shouldParameters, mustNotParameters, map[string]string{},
-		size, from,
+		mustParameters,
+		shouldParameters,
+		mustNotParameters,
+		filtersParameters,
+		priceParameters,
+		decayParameters,
+		queryStringParameters,
+		size,
+		from,
 	)
 
 	if err != nil {
 		interactor.Logger.ErrorGettingAds(mustParameters, shouldParameters, mustNotParameters, err)
 		return
 	}
-	// log info if there is not enough ads to return
+
 	if len(ads) < interactor.MinDisplayedAds {
 		interactor.Logger.NotEnoughAds(listID, len(ads))
 		return []domain.Ad{}, nil
@@ -103,29 +133,129 @@ func (interactor *GetSuggestions) getAdsContact(
 	return suggestions, err
 }
 
-// getMustsParams returns a map with mandatory values
-func getMustsParams(ad domain.Ad) (out map[string]string) {
+// getPriceRange returns a map with price range values
+func (interactor *GetSuggestions) getPriceRange(
+	ad domain.Ad,
+	priceRangeSlice []interface{},
+) (out map[string]string, err error) {
 	out = make(map[string]string)
-	out["Category"] = ad.Category
-	out["SubCategory"] = ad.SubCategory
-	out["PublisherType"] = string(domain.Pro)
-	return
+	if len(priceRangeSlice) == 0 {
+		return out, err
+	}
+
+	uf, err := interactor.IndicatorsRepository.GetUF()
+	if err != nil {
+		return out, err
+	}
+
+	priceRange := priceRangeSlice[0].(map[string]interface{})
+
+	out["uf"] = fmt.Sprintf("%v", uf)
+	if _, ok := priceRange["type"]; !ok {
+		out["type"] = "must"
+	} else {
+		out["type"] = priceRange["type"].(string)
+	}
+
+	if _, ok := priceRange["calculate"]; ok {
+		adMap := ad.GetFieldsMapString()
+
+		adCurrency := adMap["currency"]
+		adPrice, _ := strconv.ParseFloat(adMap["price"], 64)
+		minusPrice, _ := strconv.Atoi(priceRange["gte"].(string))
+		plusPrice, _ := strconv.Atoi(priceRange["lte"].(string))
+
+		out["gte"], out["lte"] = calculateMinMaxPriceRange(
+			adPrice,
+			uf,
+			adCurrency,
+			minusPrice,
+			plusPrice,
+		)
+	} else {
+		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
+	}
+	return out, err
 }
 
-// getShouldsParams returns a map with optional values
-func getShouldsParams(ad domain.Ad, suggestionsParams []string) (out map[string]string) {
-	out = make(map[string]string)
-	for _, val := range suggestionsParams {
-		if ad.AdParams[val] != "" {
-			out["Params."+val] = ad.AdParams[val]
-		}
+// getQueryStringParams returns a map query string values
+func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]string) {
+	out = make([]map[string]string, 0)
+	if len(queryStringSlice) == 0 {
+		return
+	}
+
+	for _, value := range queryStringSlice {
+		valueStr := value.(map[string]interface{})
+		outTmp := make(map[string]string)
+		outTmp["query"] = fmt.Sprintf("%v", valueStr["query"])
+		outTmp["default_field"] = fmt.Sprintf("%v", valueStr["defaultField"])
+
+		out = append(out, outTmp)
 	}
 	return
 }
 
-// getMustNotParams returns a map with excluded values
-func getMustNotParams(ad domain.Ad) (out map[string]string) {
+// getDecayFunctionParams returns a map with decay function values
+func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{},
+	carouselType string) (out map[string]string) {
 	out = make(map[string]string)
-	out["ListID"] = strconv.FormatInt(ad.ListID, 10)
+	if len(decayFuncConf[carouselType]["decayFunc"]) == 0 {
+		carouselType = "default"
+	}
+
+	decayFunc := decayFuncConf[carouselType]["decayFunc"][0].(map[string]interface{})
+
+	out["name"] = decayFunc["name"].(string)
+	out["field"] = decayFunc["field"].(string)
+	out["origin"] = decayFunc["origin"].(string)
+	out["offset"] = decayFunc["offset"].(string)
+	out["scale"] = decayFunc["scale"].(string)
+
+	return
+}
+
+// calculateMinMaxPriceRange calculates the minimum and maximum
+// price for a range query, where a value is subtracted and added to the price
+// of the ad being requested
+func calculateMinMaxPriceRange(
+	adPrice, uf float64,
+	adCurrency string,
+	minusValue, plusValue int,
+) (string, string) {
+	// if ad currency is 'peso', divide price by UF to convert to equivalent
+	// UF value
+	if adCurrency == "peso" {
+		adPrice /= uf
+	} else {
+		// if currency is 'uf', divide by 100, because uf price has 2 extra zeroes
+		adPrice /= 100
+	}
+	minPrice := adPrice - float64(minusValue)
+	maxPrice := adPrice + float64(plusValue)
+
+	return fmt.Sprintf("%v", minPrice), fmt.Sprintf("%v", maxPrice)
+}
+
+// getSliceParams function that reads the parameters to be used in the queries
+// must, mustNot, should and filter, where they can come in the string form
+// Params.{param} or simply as {param}
+func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
+	out = make(map[string]string)
+	for _, param := range suggestionsParams {
+		paramKey := param.(string)
+		var paramValue string
+
+		if strings.HasPrefix(paramKey, "Params.") {
+			paramSlice := strings.Split(paramKey, ".")
+			paramValue = strings.ToLower(paramSlice[len(paramSlice)-1])
+		} else {
+			paramValue = strings.ToLower(paramKey)
+		}
+
+		if adMap[paramValue] != "" {
+			out[paramKey] = adMap[paramValue]
+		}
+	}
 	return
 }

@@ -26,6 +26,12 @@ type HTTPHandler interface {
 	NewRequest() HTTPRequest
 }
 
+// HTTPCachedHandler implements HTTP handler operations with cache
+type HTTPCachedHandler interface {
+	Send(HTTPRequest) (interface{}, error)
+	NewRequest() HTTPRequest
+}
+
 // ElasticSearchHandler defines the methods that are available for a elastic search handler
 type ElasticSearchHandler interface {
 	Info() (interface{}, error)

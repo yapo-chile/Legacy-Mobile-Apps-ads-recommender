@@ -26,3 +26,4 @@ services:
       PROFILE_HOST: "http://10.15.1.78:7987"
       PROMETHEUS_PORT: "8877"
       PROMETHEUS_ENABLED: "true"
+      ELASTIC_INDEX_ALIAS: "ads_dev09"

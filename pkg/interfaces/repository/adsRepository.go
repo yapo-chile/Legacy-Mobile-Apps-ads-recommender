@@ -85,13 +85,44 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	musts, shoulds, mustsNot, filters map[string]string, size, from int,
+	musts, shoulds, mustsNot, filters, priceRange, decay map[string]string,
+	queryString []map[string]string,
+	size, from int,
 ) (ads []domain.Ad, err error) {
+	mustsParams := repo.getBoolParameters(musts)
+	mustsNotParams := repo.getBoolParameters(mustsNot)
+	shouldsParams := repo.getBoolParameters(shoulds)
+	filtersParams := repo.getFilters(filters)
+	queryStringParams := repo.getQueryString(queryString)
+
+	if len(priceRange) > 0 {
+		priceParams := repo.processPriceTemplate(priceRange)
+		switch priceRange["type"] {
+		case "must":
+			mustsParams = joinParams(mustsParams, priceParams)
+		case "mustNot":
+			mustsNotParams = joinParams(mustsNotParams, priceParams)
+		case "should":
+			shouldsParams = joinParams(shouldsParams, priceParams)
+		case "filter":
+			filtersParams = joinParams(filtersParams, priceParams)
+		}
+	}
+
+	if len(queryStringParams) > 0 {
+		mustsParams = joinParams(mustsParams, queryStringParams)
+	}
+
 	params := map[string]string{
-		"Musts":    repo.getBoolParameters(musts),
-		"MustsNot": repo.getBoolParameters(mustsNot),
-		"Shoulds":  repo.getBoolParameters(shoulds),
-		"Filters":  repo.getFilters(filters),
+		"Musts":    mustsParams,
+		"MustsNot": mustsNotParams,
+		"Shoulds":  shouldsParams,
+		"Filters":  filtersParams,
+		"Name":     decay["name"],
+		"Field":    decay["field"],
+		"Origin":   decay["origin"],
+		"Offset":   decay["offset"],
+		"Scale":    decay["scale"],
 	}
 	return repo.getAdsProcess("getAds", params, size, from)
 }
@@ -134,8 +165,33 @@ func (repo *adsRepository) getBoolParameters(params map[string]string) string {
 	return repo.getParams(params, `{"match": {"%s": "%s"}}`)
 }
 
-// getFilters returns a string with filters
-// to be used on a query
+// getQueryString returns a string with query string parameters
+// to be used on a query as must, should or must_not
+func (repo *adsRepository) getQueryString(params []map[string]string) string {
+	var out string
+	for _, param := range params {
+		o := repo.getParams(param, `"%s": "%s"`)
+		out = joinParams(out, fmt.Sprintf(`{"query_string": {%s}}`, o))
+	}
+	return out
+}
+
+// processPriceTemplate returns the range query template as string
+// to be used in the final query
+func (repo *adsRepository) processPriceTemplate(priceRange map[string]string) string {
+	params := map[string]string{
+		"PriceMin": priceRange["gte"],
+		"PriceMax": priceRange["lte"],
+		"UF":       priceRange["uf"],
+	}
+	query, err := repo.ProcessTemplate("priceScript", params)
+	if err != nil {
+		return ""
+	}
+	return query
+}
+
+// getFilters returns a string with filters to be used on a query
 func (repo *adsRepository) getFilters(filters map[string]string) string {
 	return repo.getParams(filters, `{"term": {"%s.keyword": "%s"}}`)
 }
@@ -242,4 +298,16 @@ func sortedKeys(m map[string]string) (keys []string) {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// joinParams concatenates the strings in an array with a , and
+// returns the resulting string
+func joinParams(params ...string) (output string) {
+	paramsSlice := make([]string, 0)
+	for _, val := range params {
+		if len(val) > 0 {
+			paramsSlice = append(paramsSlice, val)
+		}
+	}
+	return strings.Join(paramsSlice, ",")
 }

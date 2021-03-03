@@ -94,6 +94,9 @@ func main() { //nolint: funlen
 	)
 	HTTPHandler := infrastructure.NewHTTPHandler(logger)
 
+	// httpCachedIndicatorHandler
+	httpCachedIndicatorHandler := infrastructure.NewHTTPCachedHandler(logger, conf.IndicatorsConf.CacheTTL)
+
 	// Repos
 	adsRepository := repository.NewAdsRepository(
 		elasticHandler,
@@ -105,16 +108,28 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.SearchResultPage,
 	)
 	adContactRepo := repository.NewAdContactRepository(HTTPHandler, conf.AdConf.ContactPath)
+	indicatorsRepository := repository.NewIndicatorsRepository(
+		httpCachedIndicatorHandler,
+		conf.IndicatorsConf.UFPath,
+	)
+
+	if err := infrastructure.LoadJSONFromFile(
+		conf.ResourcesConf.SuggestionsParams,
+		&conf.AdConf.SuggestionsParams,
+	); err != nil {
+		panic(fmt.Sprintf("error loading allowed message text file: %s", err.Error()))
+	}
 
 	// Interactors
 	getSuggestions := usecases.GetSuggestions{
-		SuggestionsRepo:   adsRepository,
-		AdContact:         adContactRepo,
-		MinDisplayedAds:   conf.AdConf.MinDisplayedAds,
-		RequestedAdsQty:   conf.AdConf.DefaultRequestedAdsQty,
-		MaxDisplayedAds:   conf.AdConf.MaxDisplayedAds,
-		SuggestionsParams: conf.AdConf.SuggestionsParams,
-		Logger:            getSuggestionsLogger,
+		SuggestionsRepo:      adsRepository,
+		AdContact:            adContactRepo,
+		MinDisplayedAds:      conf.AdConf.MinDisplayedAds,
+		RequestedAdsQty:      conf.AdConf.DefaultRequestedAdsQty,
+		MaxDisplayedAds:      conf.AdConf.MaxDisplayedAds,
+		SuggestionsParams:    conf.AdConf.SuggestionsParams,
+		Logger:               getSuggestionsLogger,
+		IndicatorsRepository: indicatorsRepository,
 	}
 	// HealthHandler
 	var healthHandler handlers.HealthHandler
@@ -152,7 +167,7 @@ func main() { //nolint: funlen
 					{
 						Name:         "Get suggestions for a specific ad",
 						Method:       "GET",
-						Pattern:      "/suggestions/{listID:.*}/pro",
+						Pattern:      "/suggestions/{carousel:[a-z_]+}/{listID:\\d+}",
 						Handler:      &getProSuggestionsHandler,
 						RequestCache: "10s",
 					}},
