@@ -11,16 +11,6 @@
 
 ads-recommender is the official golang microservice template for Yapo.
 
-## A few rules
-
-* ads-recommender was built following [Clean Architecture](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164) so, please, familiarize yourself with it and let's code great code!
-
-* ads-recommender has great [test coverage](https://quality-gate.mpi-internal.com/#/Yapo/ads-recommender) and [examples](https://github.mpi-internal.com/Yapo/ads-recommender/search?l=Go&q=func+Test&type=&utf8=%E2%9C%93) of how good testing can be done. Please honor the effort and keep your test quality in the top tier.
-
-* ads-recommender is not a silver bullet. If your service clearly doesn't fit in this template, let's have a [conversation](mailto:dev@schibsted.cl)
-
-* [README.md](README.md) is the entrypoint for new users of your service. Keep it up to date and get others to proof-read it.
-
 ## How to run the service
 
 * Create the dir: `~/go/src/github.mpi-internal.com/Yapo`
@@ -81,50 +71,6 @@ ads-recommender is the official golang microservice template for Yapo.
   $ make checkstyle
   ```
   
-
-## Creating a new service
-
-* Create a repo for your new service on: https://github.mpi-internal.com/Yapo
-* Rename your ads-recommender dir to your service name:
-  ```
-  $ mv ads-recommender YourService
-  ```
-* Update origin: 
-  ```
-  # https://help.github.com/articles/changing-a-remote-s-url/
-  $ git remote set-url origin git@github.mpi-internal.com:Yapo/YourService.git
-  ```
-
-* Replace every ads-recommender reference to your service's name:
-  ```
-  $ git grep -l ads-recommender | xargs sed -i.bak 's/ads-recommender/yourservice/g'
-  $ find . -name "*.bak" | xargs rm
-  ```
-
-* Go through the code examples and implement your service
-  ```
-  $ git grep -il fibonacci
-  README.md
-  cmd/ads-recommender/main.go
-  pkg/domain/fibonacci.go
-  pkg/domain/fibonacci_test.go
-  pkg/interfaces/handlers/fibonacci.go
-  pkg/interfaces/handlers/fibonacci_test.go
-  pkg/interfaces/loggers/fibonacciInteractorLogger.go
-  pkg/interfaces/repository/fibonacci.go
-  pkg/interfaces/repository/fibonacci_test.go
-  pkg/usecases/getNthFibonacci.go
-  pkg/usecases/getNthFibonacci_test.go
-  ```
-
-* Enable TravisCI
-  - Go to your service's github settings -> Hooks & Services -> Add Service -> Travis CI
-  - Fill in the form with the credentials you obtain from https://travis.mpi-internal.com/profile/
-  - Sync your repos and organizations on Travis
-  - Make a push on your service
-  - The push should trigger a build. If it didn't ensure that it is enabled on the travis service list
-  - Enjoy! This should automatically enable quality-gate reports and a few other goodies
-
 ## Endpoints
 ### GET  /healthcheck
 Reports whether the service is up and ready to respond.
@@ -145,49 +91,63 @@ No request parameters
 }
 ```
 
-### GET  /fibonacci
-Implements the Fibonacci Numbers with Clean Architecture
+### GET  /recommendations/{carousel}/{listID}?params=[adParams]&limit=[adsLimit]&from=[fromIndex]
+Returns recommended ads depending on the chosen carousel
 
 #### Request
-{
-	"n": int - Ask for the nth fibonacci number
-}
+The `params` query parameter can contain any ad param name, for example `category, publisherType, estateType`, etc. This will return the same ads, with those fields included if available.
+
+The `limit` query param indicates how many ads to return. For example a limit of 5 will only return 5 ads.
+
+The `from` query param indicates from which index to return the ads. For example a from value of 1 means that the first recommended ad will be skipped, and the next ads will be returned.
+
+The path variable `carousel` can be obtained from the file `resources/suggestion_params.json`. There reside the available carousels and their configurations.
 
 #### Response
 
 ```javascript
 200 OK
 {
-	"Result": int - The nth fibonacci number
+  "ads": [
+    {
+      "id": "4961183",
+      "title": "Dodge Journey 2018",
+      "price": 50000000,
+      "currency": "$",
+      "images": {},
+      "url": "/arica_parinacota/dodge_journey_2018_4961183",
+      "date": "2021-02-08 20:55:45"
+    },
+    {
+      "id": "4961184",
+      "title": "Dodge Journey 2018",
+      "price": 50000000,
+      "currency": "$",
+      "images": {},
+      "url": "/arica_parinacota/dodge_journey_2018_4961184",
+      "date": "2021-02-08 20:55:45"
+    },
+    ...
+  ]
 }
+
+//When there are no recommendations for the provided listID
+204 No Content
+
 ```
 
 #### Error response
 ```javascript
-400 Bad Request
+//When the listID is not valid
+500 Internal Server Error
 {
-	"ErrorMessage": string - Explaining what went wrong
+  "ErrorMessage": "get ad fails to get it, len: 0"
 }
-```
 
-### GET  /user/basic-data?mail=[user_mail]
-Returns the essential user data. It is in communication with the Profile Microservice. The main goal of this endpoint is to be used for a basic Pact Test.
-
-#### Request
-
-No additional parameters
-
-#### Response
-
-```javascript
-200 OK
+//When the carousel path variable is not valid
+500 Internal Server Error
 {
-    "fullname": Full name of the user,
-    "cellphone": The user´s cellphone,
-    "gender": The user gender,
-    "country": The country where the user lives (Currently only Chile is Available),
-    "region": The region where the user lives,
-    "commune": The commune where the user lives,
+  "ErrorMessage": "invalid carousel: '{invalidCarousel}'"
 }
 ```
 
