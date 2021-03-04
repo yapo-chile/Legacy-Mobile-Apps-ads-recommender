@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
 )
 
 const getAdTemplateName = "getAd"

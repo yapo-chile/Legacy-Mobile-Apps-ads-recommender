@@ -1,23 +1,23 @@
-# pro-carousel
+# ads-recommender
 
 <!-- Badger start badges -->
-[![Status of the build](https://badger.spt-engprod-pro.mpi-internal.com/badge/travis/Yapo/pro-carousel)](https://travis.mpi-internal.com/Yapo/pro-carousel)
-[![Testing Coverage](https://badger.spt-engprod-pro.mpi-internal.com/badge/coverage/Yapo/pro-carousel)](https://reports.spt-engprod-pro.mpi-internal.com/#/Yapo/pro-carousel?branch=master&type=push&daterange&daterange)
-[![Style/Linting issues](https://badger.spt-engprod-pro.mpi-internal.com/badge/issues/Yapo/pro-carousel)](https://reports.spt-engprod-pro.mpi-internal.com/#/Yapo/pro-carousel?branch=master&type=push&daterange&daterange)
-[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/flaky_tests/Yapo/pro-carousel)](https://databulous.spt-engprod-pro.mpi-internal.com/test/flaky/Yapo/pro-carousel)
-[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/quality_index/Yapo/pro-carousel)](https://databulous.spt-engprod-pro.mpi-internal.com/quality/repo/Yapo/pro-carousel)
-[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/engprod/Yapo/pro-carousel)](https://github.mpi-internal.com/spt-engprod/badger)
+[![Status of the build](https://badger.spt-engprod-pro.mpi-internal.com/badge/travis/Yapo/ads-recommender)](https://travis.mpi-internal.com/Yapo/ads-recommender)
+[![Testing Coverage](https://badger.spt-engprod-pro.mpi-internal.com/badge/coverage/Yapo/ads-recommender)](https://reports.spt-engprod-pro.mpi-internal.com/#/Yapo/ads-recommender?branch=master&type=push&daterange&daterange)
+[![Style/Linting issues](https://badger.spt-engprod-pro.mpi-internal.com/badge/issues/Yapo/ads-recommender)](https://reports.spt-engprod-pro.mpi-internal.com/#/Yapo/ads-recommender?branch=master&type=push&daterange&daterange)
+[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/flaky_tests/Yapo/ads-recommender)](https://databulous.spt-engprod-pro.mpi-internal.com/test/flaky/Yapo/ads-recommender)
+[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/quality_index/Yapo/ads-recommender)](https://databulous.spt-engprod-pro.mpi-internal.com/quality/repo/Yapo/ads-recommender)
+[![Badger](https://badger.spt-engprod-pro.mpi-internal.com/badge/engprod/Yapo/ads-recommender)](https://github.mpi-internal.com/spt-engprod/badger)
 <!-- Badger end badges -->
 
-pro-carousel is the official golang microservice template for Yapo.
+ads-recommender is the official golang microservice template for Yapo.
 
 ## A few rules
 
-* pro-carousel was built following [Clean Architecture](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164) so, please, familiarize yourself with it and let's code great code!
+* ads-recommender was built following [Clean Architecture](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164) so, please, familiarize yourself with it and let's code great code!
 
-* pro-carousel has great [test coverage](https://quality-gate.mpi-internal.com/#/Yapo/pro-carousel) and [examples](https://github.mpi-internal.com/Yapo/pro-carousel/search?l=Go&q=func+Test&type=&utf8=%E2%9C%93) of how good testing can be done. Please honor the effort and keep your test quality in the top tier.
+* ads-recommender has great [test coverage](https://quality-gate.mpi-internal.com/#/Yapo/ads-recommender) and [examples](https://github.mpi-internal.com/Yapo/ads-recommender/search?l=Go&q=func+Test&type=&utf8=%E2%9C%93) of how good testing can be done. Please honor the effort and keep your test quality in the top tier.
 
-* pro-carousel is not a silver bullet. If your service clearly doesn't fit in this template, let's have a [conversation](mailto:dev@schibsted.cl)
+* ads-recommender is not a silver bullet. If your service clearly doesn't fit in this template, let's have a [conversation](mailto:dev@schibsted.cl)
 
 * [README.md](README.md) is the entrypoint for new users of your service. Keep it up to date and get others to proof-read it.
 
@@ -31,13 +31,13 @@ pro-carousel is the official golang microservice template for Yapo.
 
   ```
   $ cd ~/go/src/github.mpi-internal.com/Yapo
-  $ git clone git@github.mpi-internal.com:Yapo/pro-carousel.git
+  $ git clone git@github.mpi-internal.com:Yapo/ads-recommender.git
   ```
 
 * On the top dir execute the make instruction to clean and start:
 
   ```
-  $ cd pro-carousel
+  $ cd ads-recommender
   $ make start
   ```
 
@@ -46,7 +46,7 @@ pro-carousel is the official golang microservice template for Yapo.
   ```
   $ make help
     Targets:
-	  clone                Setup a new service repository based on pro-carousel
+	  clone                Setup a new service repository based on ads-recommender
 	  info                 Display basic service info
 	  help                 This help message
 	  run                  Build and start the service in development mode (detached)
@@ -85,9 +85,9 @@ pro-carousel is the official golang microservice template for Yapo.
 ## Creating a new service
 
 * Create a repo for your new service on: https://github.mpi-internal.com/Yapo
-* Rename your pro-carousel dir to your service name:
+* Rename your ads-recommender dir to your service name:
   ```
-  $ mv pro-carousel YourService
+  $ mv ads-recommender YourService
   ```
 * Update origin: 
   ```
@@ -95,9 +95,9 @@ pro-carousel is the official golang microservice template for Yapo.
   $ git remote set-url origin git@github.mpi-internal.com:Yapo/YourService.git
   ```
 
-* Replace every pro-carousel reference to your service's name:
+* Replace every ads-recommender reference to your service's name:
   ```
-  $ git grep -l pro-carousel | xargs sed -i.bak 's/pro-carousel/yourservice/g'
+  $ git grep -l ads-recommender | xargs sed -i.bak 's/ads-recommender/yourservice/g'
   $ find . -name "*.bak" | xargs rm
   ```
 
@@ -105,7 +105,7 @@ pro-carousel is the official golang microservice template for Yapo.
   ```
   $ git grep -il fibonacci
   README.md
-  cmd/pro-carousel/main.go
+  cmd/ads-recommender/main.go
   pkg/domain/fibonacci.go
   pkg/domain/fibonacci_test.go
   pkg/interfaces/handlers/fibonacci.go
@@ -202,9 +202,9 @@ If you haven't done it yet, you need to create a secret to reach Artifactory.
 
 ### Helm Charts
 
-1. You need to fill out the ENV variables in the k8s/pro-carousel/templates/configmap.yaml file.
+1. You need to fill out the ENV variables in the k8s/ads-recommender/templates/configmap.yaml file.
 2. You should fill out the *tag*, and *host* under hosts to your namespace.
 3. Add this host name to your /etc/hosts file with the correct IP address (127.21.5.11)
-4. You run `helm install -n <name_of_your_release> k8s/pro-carousel`
+4. You run `helm install -n <name_of_your_release> k8s/ads-recommender`
 5. Check your pod is running with `kubectl get pods`
 6. If you want to check your request log `kubectl logs <name_of_your_pod>`

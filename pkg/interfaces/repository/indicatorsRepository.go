@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
 )
 
 // indicatorsRepository loan settings datasource

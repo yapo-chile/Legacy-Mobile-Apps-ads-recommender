@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"github.com/Yapo/logger"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/loggers"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
 )
 
 // yapoLogger struct that implements the Logger interface using the Yapo/logger library

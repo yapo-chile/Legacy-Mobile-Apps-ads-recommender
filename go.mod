@@ -1,4 +1,4 @@
-module github.mpi-internal.com/Yapo/pro-carousel
+module github.mpi-internal.com/Yapo/ads-recommender
 
 go 1.13
 

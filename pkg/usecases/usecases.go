@@ -1,7 +1,7 @@
 package usecases
 
 import (
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
 )
 
 // GetSuggestionsInteractor defines the available methods for this interactor

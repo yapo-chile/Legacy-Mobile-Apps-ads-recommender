@@ -1,6 +1,6 @@
 package usecases
 
-import "github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
+import "github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
 
 // AdsRepository defines the methods that are available for ad repository
 type AdsRepository interface {

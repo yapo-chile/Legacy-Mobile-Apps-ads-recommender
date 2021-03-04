@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/Yapo/goutils"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
 )
 
 // DataMapping allows get specific configuration params from etcd

@@ -1,4 +1,4 @@
-# Default values for pro-carousel.
+# Default values for ads-recommender.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -7,7 +7,7 @@ globals:
   env: reg
 
 image:
-  repository: containers.mpi-internal.com/yapo/pro-carousel
+  repository: containers.mpi-internal.com/yapo/ads-recommender
   tag: "latest"
   pullPolicy: IfNotPresent
   pullSecret: containers-mpi-internal-com
@@ -24,7 +24,7 @@ secrets:
 
 env:
   ETCD_HOST: http://config-etcd:2397
-  PRO_CAROUSEL_HEALTH_PATH: "/healthcheck"
+  ADS_RECOMMENDER_HEALTH_PATH: "/healthcheck"
 
 service:
   type: ClusterIP

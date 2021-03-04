@@ -28,7 +28,7 @@ export SERVICE_PORT=8080
 export BASE_URL="http://localhost:${SERVICE_PORT}"
 
 
-## Setup a new service repository based on pro-carousel
+## Setup a new service repository based on ads-recommender
 clone:
 	@scripts/commands/clone.sh
 
