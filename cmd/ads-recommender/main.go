@@ -165,7 +165,7 @@ func main() { //nolint: funlen
 						Handler: &healthHandler,
 					},
 					{
-						Name:         "Get suggestions for a specific ad",
+						Name:         "Get recommendations for a specific ad",
 						Method:       "GET",
 						Pattern:      "/recommendations/{carousel:[a-z_]+}/{listID:\\d+}",
 						Handler:      &getProSuggestionsHandler,
