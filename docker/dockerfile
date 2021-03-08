@@ -19,7 +19,7 @@ EXPOSE 8080
 WORKDIR /home/user/app/
 COPY --from=gobuilder /app.linux .
 COPY /resources/queries/* /home/user/app/resources/queries/
-
+COPY /resources/suggestion_params.json /home/user/app/resources/
 
 CMD ["./app.linux"]
 
