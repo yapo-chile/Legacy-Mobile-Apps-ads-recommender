@@ -12,35 +12,35 @@
         "name": "VAR_STACK_NAME",
         "type": "constant",
         "label": "stack_name",
-        "value": "pro-carousel",
+        "value": "ads-recommender",
         "description": ""
       },
       {
         "name": "VAR_SERVICE_NAME",
         "type": "constant",
         "label": "service_name",
-        "value": "pro-carousel",
+        "value": "ads-recommender",
         "description": ""
       },
       {
         "name": "VAR_DESCRIPTION",
         "type": "constant",
         "label": "DESCRIPTION",
-        "value": "pro-carousel works as base project for golang services",
+        "value": "ads-recommender works as base project for golang services",
         "description": ""
       },
       {
         "name": "VAR_GITHUB_LINK",
         "type": "constant",
         "label": "GITHUB_LINK",
-        "value": "https://github.mpi-internal.com/Yapo/pro-carousel",
+        "value": "https://github.mpi-internal.com/Yapo/ads-recommender",
         "description": ""
       },
       {
         "name": "VAR_EVENTS_COLLECTOR_METRIC_NAME",
         "type": "constant",
         "label": "EVENTS_COLLECTOR_METRIC_NAME",
-        "value": "pro-carousel_service_events_total",
+        "value": "ads-recommender_service_events_total",
         "description": ""
       }
     ],
@@ -2333,7 +2333,7 @@
       ]
     },
     "timezone": "",
-    "title": "pro-carousel k8s",
+    "title": "ads-recommender k8s",
     "uid": "",
     "version": 3
   }

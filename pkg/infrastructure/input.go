@@ -14,7 +14,7 @@ import (
 	"github.com/Yapo/goutils"
 	"gopkg.in/gorilla/mux.v1"
 
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/handlers"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
 )
 
 // InputSource defines the type for an input source

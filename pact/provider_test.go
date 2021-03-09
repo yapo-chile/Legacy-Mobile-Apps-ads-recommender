@@ -11,7 +11,7 @@ import (
 	"github.com/pact-foundation/pact-go/dsl"
 	"github.com/pact-foundation/pact-go/types"
 
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/infrastructure"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure"
 )
 
 type PactConf struct {
@@ -76,7 +76,7 @@ func TestProvider(t *testing.T) {
 	fmt.Printf("Pact directory: %+v", conf.PactPath)
 	infrastructure.LoadFromEnv(&conf)
 	var pact = &dsl.Pact{
-		Consumer: "pro-carousel",
+		Consumer: "ads-recommender",
 	}
 	files, err := IOReadDir(conf.PactPath)
 	if err != nil {
@@ -106,7 +106,7 @@ func TestSendBroker(*testing.T) {
 	infrastructure.LoadFromEnv(&conf)
 
 	oldPactResponse, currentVer, errOld := getContractInfo(conf.BrokerHost +
-		"/pacts/provider/profile-ms/consumer/pro-carousel/latest")
+		"/pacts/provider/profile-ms/consumer/ads-recommender/latest")
 	if errOld != nil {
 		if errOld.Error() != "the error code was 404" {
 			fmt.Printf("Error getting the contract from the broker: +%v\n", errOld)
@@ -129,10 +129,10 @@ func TestSendBroker(*testing.T) {
 
 	if sendCond {
 		err := pactPublisher.Publish(types.PublishRequest{
-			PactURLs:        []string{"./pacts/pro-carousel.json"},
+			PactURLs:        []string{"./pacts/ads-recommender.json"},
 			PactBroker:      conf.BrokerHost + ":" + conf.BrokerPort,
 			ConsumerVersion: fmt.Sprintf("%.1f", newVer),
-			Tags:            []string{"pro-carousel"},
+			Tags:            []string{"ads-recommender"},
 		})
 		if err != nil {
 			fmt.Printf("Error with the Pact Broker server. Error %+v\n", err)
@@ -153,7 +153,7 @@ func IOReadDir(root string) ([]string, error) {
 	return files, nil
 }
 
-// Method that gets the last version of the contract between consumer (pro-carousel) and it's provider
+// Method that gets the last version of the contract between consumer (ads-recommender) and it's provider
 // Returns the contract and the last version of the contract or error
 func getContractInfo(url string) (interface{}, float64, error) {
 	var confContracts infrastructure.Config

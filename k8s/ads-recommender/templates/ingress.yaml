@@ -1,13 +1,13 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "pro-carousel.fullname" . -}}
-{{- $hostPrefix := include "pro-carousel.hostPrefix" . -}}
+{{- $fullName := include "ads-recommender.fullname" . -}}
+{{- $hostPrefix := include "ads-recommender.hostPrefix" . -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   namespace: {{ .Release.Namespace }}
   labels:
-{{ include "pro-carousel.labels" . | indent 4 }}
+{{ include "ads-recommender.labels" . | indent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

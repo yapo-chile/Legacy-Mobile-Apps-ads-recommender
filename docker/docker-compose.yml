@@ -4,7 +4,7 @@ volumes:
   etcd: {}
 # CLONE-RCONF REMOVE END
 services:
-  pro-carousel:
+  ads-recommender:
     build:
       args:
         - APPNAME
@@ -19,7 +19,7 @@ services:
     environment:
       CIRCUIT_BREAKER_FAILURE_RATIO: "0.5"
       CIRCUIT_BREAKER_CONSECUTIVE_FAILURE: "2"
-      PRO_CAROUSEL_HEALTH_PATH: "${BASE_URL}/healthcheck"
+      ADS_RECOMMENDER_HEALTH_PATH: "${BASE_URL}/healthcheck"
       LOGGER_SYSLOG_ENABLED: "false"
       LOGGER_STDLOG_ENABLED: "true"
       LOGGER_LOG_LEVEL: "0"

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/domain"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
 )
 
 const (

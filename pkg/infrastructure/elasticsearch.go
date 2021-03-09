@@ -11,7 +11,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/loggers"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
 )
 
 type ElasticItem struct {

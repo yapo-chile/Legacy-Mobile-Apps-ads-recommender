@@ -1,5 +1,5 @@
 {
-    "service":"pro-carousel",
+    "service":"ads-recommender",
     "team": "yapo-pro",
     "prometheus": ["p1","devpre"]
 }

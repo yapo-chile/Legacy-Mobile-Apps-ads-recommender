@@ -1,6 +1,6 @@
 package loggers
 
-import "github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
+import "github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
 
 type getSuggestionsLogger struct {
 	logger Logger

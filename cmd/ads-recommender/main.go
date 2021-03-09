@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/infrastructure"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/handlers"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/loggers"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/interfaces/repository"
-	"github.mpi-internal.com/Yapo/pro-carousel/pkg/usecases"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/repository"
+	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
 )
 
 func main() { //nolint: funlen
@@ -36,8 +36,8 @@ func main() { //nolint: funlen
 
 	logger, err := infrastructure.MakeYapoLogger(&conf.LoggerConf,
 		prometheus.NewEventsCollector(
-			"pro-carousel_service_events_total",
-			"events tracker counter for pro-carousel service",
+			"ads-recommender_service_events_total",
+			"events tracker counter for ads-recommender service",
 		),
 	)
 
@@ -165,9 +165,9 @@ func main() { //nolint: funlen
 						Handler: &healthHandler,
 					},
 					{
-						Name:         "Get suggestions for a specific ad",
+						Name:         "Get recommendations for a specific ad",
 						Method:       "GET",
-						Pattern:      "/suggestions/{carousel:[a-z_]+}/{listID:\\d+}",
+						Pattern:      "/recommendations/{carousel:[a-z_]+}/{listID:\\d+}",
 						Handler:      &getProSuggestionsHandler,
 						RequestCache: "10s",
 					}},

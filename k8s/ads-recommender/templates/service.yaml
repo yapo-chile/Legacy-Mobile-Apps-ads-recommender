@@ -4,10 +4,10 @@ metadata:
   annotations:
     prometheus.io/port: {{ .Values.prometheus.port | quote }}
     prometheus.io/scrape: {{ .Values.prometheus.enabled | quote }}
-  name: {{ include "pro-carousel.fullname" . }}
+  name: {{ include "ads-recommender.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-{{ include "pro-carousel.labels" . | indent 4 }}
+{{ include "ads-recommender.labels" . | indent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -22,5 +22,5 @@ spec:
       name: prom
     {{- end }}
   selector:
-    app.kubernetes.io/name: {{ include "pro-carousel.name" . }}
+    app.kubernetes.io/name: {{ include "ads-recommender.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

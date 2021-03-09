@@ -47,8 +47,8 @@ type CircuitBreakerConf struct {
 	Interval           int     `env:"INTERVAL" envDefault:"30"`
 }
 
-// ProCarouselClientConf holds configuration regarding to our http client (pro-carousel itself in this case)
-type ProCarouselClientConf struct {
+// AdsRecommenderClientConf holds configuration regarding to our http client (ads-recommender itself in this case)
+type AdsRecommenderClientConf struct {
 	TimeOut            int    `env:"TIMEOUT" envDefault:"30"`
 	GetHealthcheckPath string `env:"HEALTH_PATH" envDefault:"/get/healthcheck"`
 }
@@ -138,18 +138,18 @@ func (chc *InBrowserCacheConf) InitEtag() int64 {
 
 // Config holds all configuration for the service
 type Config struct {
-	PrometheusConf        PrometheusConf        `env:"PROMETHEUS_"`
-	LoggerConf            LoggerConf            `env:"LOGGER_"`
-	Runtime               RuntimeConfig         `env:"APP_"`
-	CircuitBreakerConf    CircuitBreakerConf    `env:"CIRCUIT_BREAKER_"`
-	ProCarouselClientConf ProCarouselClientConf `env:"PRO_CAROUSEL_"`
-	CorsConf              CorsConf              `env:"CORS_"`
-	InBrowserCacheConf    InBrowserCacheConf    `env:"BROWSER_CACHE_"`
-	ElasticSearchConf     ElasticSearchConf     `env:"ELASTIC_"`
-	EtcdConf              EtcdConf              `env:"ETCD_"`
-	AdConf                AdConf                `env:"AD_"`
-	ResourcesConf         ResourcesConf         `env:"RESOURCES_"`
-	IndicatorsConf        IndicatorsConf        `env:"INDICATORS_"`
+	PrometheusConf           PrometheusConf           `env:"PROMETHEUS_"`
+	LoggerConf               LoggerConf               `env:"LOGGER_"`
+	Runtime                  RuntimeConfig            `env:"APP_"`
+	CircuitBreakerConf       CircuitBreakerConf       `env:"CIRCUIT_BREAKER_"`
+	AdsRecommenderClientConf AdsRecommenderClientConf `env:"ADS_RECOMMENDER_"`
+	CorsConf                 CorsConf                 `env:"CORS_"`
+	InBrowserCacheConf       InBrowserCacheConf       `env:"BROWSER_CACHE_"`
+	ElasticSearchConf        ElasticSearchConf        `env:"ELASTIC_"`
+	EtcdConf                 EtcdConf                 `env:"ETCD_"`
+	AdConf                   AdConf                   `env:"AD_"`
+	ResourcesConf            ResourcesConf            `env:"RESOURCES_"`
+	IndicatorsConf           IndicatorsConf           `env:"INDICATORS_"`
 }
 
 // LoadFromEnv loads the config data from the environment variables

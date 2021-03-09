@@ -17,7 +17,7 @@ __SERVICE__ needs a description here.
   - Open https://github.mpi-internal.com/Yapo/__SERVICE__/settings
   - Features: Wikis, Restrict editing, Issues, Projects
   - Merge button: Only allow merge commits
-  - Open https://github.mpi-internal.com/Yapo/pro-carousel/settings/branches
+  - Open https://github.mpi-internal.com/Yapo/ads-recommender/settings/branches
   - Default branch: master
   - Protected branches: choose master
   - Protect this branch
@@ -46,11 +46,11 @@ __SERVICE__ needs a description here.
   - Follow the instructions on https://github.mpi-internal.com/Yapo/rancher-deploy
 * [ ] Create Helm Charts for Kubernetes deploy
   - Create a new Chart with `helm create k8s/__SERVICE__` cmd
-  - Copy configmap.yaml from k8s/pro-carousel/templates/ and change pro-carousel to your __SERVICE__ name.
+  - Copy configmap.yaml from k8s/ads-recommender/templates/ and change ads-recommender to your __SERVICE__ name.
   - In the k8s/__SERVICE__/deployment.yaml file:
       + Add `/healthcheck` value to livenessProbe and readinessProbe section
-      + Copy imagePullSecrets, annotations and envFrom section from pro-carousel example deploment.yaml and change the names to your service name
-  - Delete pro-carousel chart
+      + Copy imagePullSecrets, annotations and envFrom section from ads-recommender example deploment.yaml and change the names to your service name
+  - Delete ads-recommender chart
 * [ ] Delete this section
   - It's time for me to leave, I've done my part
   - It's time for you to start coding your new service and documenting your endpoints below
@@ -81,7 +81,7 @@ __SERVICE__ needs a description here.
   ```
   $ make help
 	Targets:
-	  clone                Setup a new service repository based on pro-carousel
+	  clone                Setup a new service repository based on ads-recommender
 	  info                 Display basic service info
 	  help                 This help message
 	  run                  Build and start the service in development mode (detached)
@@ -147,9 +147,9 @@ If you haven't done it yet, you need to create a secret to reach Artifactory.
 
 ### Helm Charts
 
-1. You need to fill out the ENV variables in the k8s/pro-carousel/templates/configmap.yaml file.
+1. You need to fill out the ENV variables in the k8s/ads-recommender/templates/configmap.yaml file.
 2. You should fill out the *tag*, and *host* under hosts to your namespace.
 3. Add this host name to your /etc/hosts file with the correct IP address (127.21.5.11)
-4. You run `helm install -n <name_of_your_release> k8s/pro-carousel`
+4. You run `helm install -n <name_of_your_release> k8s/ads-recommender`
 5. Check your pod is running with `kubectl get pods`
 6. If you want to check your request log `kubectl logs <name_of_your_pod>`
