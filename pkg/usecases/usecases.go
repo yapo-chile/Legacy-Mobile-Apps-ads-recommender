@@ -6,11 +6,11 @@ import (
 
 // GetSuggestionsInteractor defines the available methods for this interactor
 type GetSuggestionsInteractor interface {
-	// GetProSuggestions will get all suggestions for the given listID
-	GetProSuggestions(
+	// GetSuggestions will get all suggestions for the given listID
+	GetSuggestions(
 		listID string,
 		optionalParams []string,
 		size, from int,
-		carousel string,
+		carouselType string,
 	) (ads []domain.Ad, err error)
 }

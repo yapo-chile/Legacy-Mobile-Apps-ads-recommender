@@ -83,21 +83,22 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 
 // GetAds returns a slice of Ad object using mandatory parameters (musts),
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
-// and aditional keyword filters (filters) to get ads related to this terms.
+// and aditional keyword filters (filters and fields) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	musts, shoulds, mustsNot, filters, priceRange, decay map[string]string,
-	queryString []map[string]string,
+	listID string,
+	parameters usecases.SuggestionParameters,
 	size, from int,
 ) (ads []domain.Ad, err error) {
-	mustsParams := repo.getBoolParameters(musts)
-	mustsNotParams := repo.getBoolParameters(mustsNot)
-	shouldsParams := repo.getBoolParameters(shoulds)
-	filtersParams := repo.getFilters(filters)
-	queryStringParams := repo.getQueryString(queryString)
+	mustsParams := repo.getBoolParameters(parameters.Musts)
+	mustsNotParams := repo.getBoolParameters(parameters.MustsNot)
+	shouldsParams := repo.getBoolParameters(parameters.Shoulds)
+	filtersParams := repo.getFilters(parameters.Filters)
+	queryStringParams := repo.getQueryString(parameters.QueryString)
+	likeParams := repo.processLikeTemplate(listID, parameters.Fields, parameters.QueryConf)
 
-	if len(priceRange) > 0 {
-		priceParams := repo.processPriceTemplate(priceRange)
-		switch priceRange["type"] {
+	if len(parameters.PriceConf) > 0 {
+		priceParams := repo.processPriceTemplate(parameters.PriceConf)
+		switch parameters.PriceConf["type"] {
 		case "must":
 			mustsParams = joinParams(mustsParams, priceParams)
 		case "mustNot":
@@ -108,21 +109,22 @@ func (repo *adsRepository) GetAds(
 			filtersParams = joinParams(filtersParams, priceParams)
 		}
 	}
-
 	if len(queryStringParams) > 0 {
 		mustsParams = joinParams(mustsParams, queryStringParams)
 	}
-
+	if len(likeParams) > 0 {
+		mustsParams = joinParams(likeParams, mustsParams)
+	}
 	params := map[string]string{
 		"Musts":    mustsParams,
 		"MustsNot": mustsNotParams,
 		"Shoulds":  shouldsParams,
 		"Filters":  filtersParams,
-		"Name":     decay["name"],
-		"Field":    decay["field"],
-		"Origin":   decay["origin"],
-		"Offset":   decay["offset"],
-		"Scale":    decay["scale"],
+		"Name":     parameters.DecayConf["name"],
+		"Field":    parameters.DecayConf["field"],
+		"Origin":   parameters.DecayConf["origin"],
+		"Offset":   parameters.DecayConf["offset"],
+		"Scale":    parameters.DecayConf["scale"],
 	}
 	return repo.getAdsProcess("getAds", params, size, from)
 }
@@ -185,6 +187,26 @@ func (repo *adsRepository) processPriceTemplate(priceRange map[string]string) st
 		"UF":       priceRange["uf"],
 	}
 	query, err := repo.ProcessTemplate("priceScript", params)
+	if err != nil {
+		return ""
+	}
+	return query
+}
+
+// processLikeTemplate returns the more like this query template as string
+// to be used in the final query
+func (repo *adsRepository) processLikeTemplate(
+	listID string,
+	fields []string,
+	config map[string]string) string {
+	params := map[string]string{
+		"ListID":        listID,
+		"Fields":        fmt.Sprintf("\"%s\"", strings.Join(fields, "\",\"")),
+		"MinTermFreq":   config["minTermFreq"],
+		"MinDocFreq":    config["minDocFreq"],
+		"MaxQueryTerms": config["maxQueryTerms"],
+	}
+	query, err := repo.ProcessTemplate("like", params)
 	if err != nil {
 		return ""
 	}
