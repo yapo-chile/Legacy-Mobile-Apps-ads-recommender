@@ -14,6 +14,7 @@ import (
 const getAdTemplateName = "getAd"
 const getAdsTemplateName = "getAds"
 const getPriceRangeTemplateName = "priceScript"
+const getLikeTemplateName = "like"
 
 func TestNewAdsRepository(t *testing.T) {
 	mHandler := MockElasticSearchHandler{}
@@ -120,9 +121,8 @@ func TestGetAdsOK(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{}
-	resp, err := repo.GetAds(options, options, options, options, options, options, queryString, 1, 0)
+	resp, err := repo.GetAds(
+		"1", usecases.SuggestionParameters{}, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -247,10 +247,10 @@ func TestGetAdsPriceRangeMust(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{}
-	priceRange := map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "must"}
-	resp, err := repo.GetAds(options, options, options, options, priceRange, options, queryString, 1, 0)
+	parameters := usecases.SuggestionParameters{
+		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "must"},
+	}
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -280,10 +280,13 @@ func TestGetAdsPriceRangeShould(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{}
-	priceRange := map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "should"}
-	resp, err := repo.GetAds(options, options, options, options, priceRange, options, queryString, 1, 0)
+	parameters := usecases.SuggestionParameters{
+		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "should"},
+	}
+	resp, err := repo.GetAds(
+		"1",
+		parameters,
+		1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -313,10 +316,53 @@ func TestGetAdsPriceRangeFilter(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{}
-	priceRange := map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "filter"}
-	resp, err := repo.GetAds(options, options, options, options, priceRange, options, queryString, 1, 0)
+
+	parameters := usecases.SuggestionParameters{
+		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "filter"},
+	}
+	resp, err := repo.GetAds(
+		"1",
+		parameters,
+		1, 0)
+	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
+	assert.Equal(t, expected, resp)
+	assert.NoError(t, err)
+	mHandler.AssertExpectations(t)
+	mDataMapping.AssertExpectations(t)
+}
+
+func TestGetAdsFieldsOK(t *testing.T) {
+	mHandler := MockElasticSearchHandler{}
+	mDataMapping := MockDataMapping{}
+	templateValue, _ := template.New(getAdsTemplateName).Parse("test")
+	templateLikeValue, _ := template.New(getLikeTemplateName).Parse("{{.Fields}}")
+	templates := map[string]*template.Template{
+		getAdsTemplateName:  templateValue,
+		getLikeTemplateName: templateLikeValue,
+	}
+	mDataMapping.On("Get", mock.Anything).Return("test")
+	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		`{
+			"hits" : {
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+			}
+		}`,
+		nil,
+	)
+
+	repo := adsRepository{
+		elasticHandler: &mHandler,
+		queryTemplates: templates,
+		regionsConf:    &mDataMapping,
+	}
+
+	parameters := usecases.SuggestionParameters{
+		Fields: []string{"test"},
+	}
+	resp, err := repo.GetAds(
+		"1",
+		parameters,
+		1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -346,10 +392,13 @@ func TestGetAdsPriceRangeMustNot(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{}
-	priceRange := map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "mustNot"}
-	resp, err := repo.GetAds(options, options, options, options, priceRange, options, queryString, 1, 0)
+	parameters := usecases.SuggestionParameters{
+		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "mustNot"},
+	}
+	resp, err := repo.GetAds(
+		"1",
+		parameters,
+		1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -379,10 +428,18 @@ func TestGetAdsQueryString(t *testing.T) {
 		queryTemplates: templates,
 		regionsConf:    &mDataMapping,
 	}
-	options := map[string]string{}
-	queryString := []map[string]string{{"query": "(private OR pro OR professional)",
-		"defaultField": "PublisherType"}}
-	resp, err := repo.GetAds(options, options, options, options, options, options, queryString, 1, 0)
+	parameters := usecases.SuggestionParameters{
+		QueryString: []map[string]string{
+			{
+				"query":        "(private OR pro OR professional)",
+				"defaultField": "PublisherType",
+			},
+		},
+	}
+	resp, err := repo.GetAds(
+		"1",
+		parameters,
+		1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -401,6 +458,22 @@ func TestProcessPriceTemplateOK(t *testing.T) {
 	priceRange := map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "filter"}
 	resp := repo.processPriceTemplate(priceRange)
 	expected := "50007000"
+	assert.Equal(t, expected, resp)
+	assert.NoError(t, err)
+}
+
+func TestProcessLikeTemplateOK(t *testing.T) {
+	templateValue, err := template.New(getLikeTemplateName).Parse("{{.Fields}}")
+	templates := map[string]*template.Template{
+		getLikeTemplateName: templateValue,
+	}
+	repo := adsRepository{
+		queryTemplates: templates,
+	}
+	fields := []string{"Test"}
+	config := map[string]string{"minTermFreq": "1", "minDocFreq": "1", "maxQueryTerms": "1"}
+	resp := repo.processLikeTemplate("1", fields, config)
+	expected := "\"Test\""
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
 }
