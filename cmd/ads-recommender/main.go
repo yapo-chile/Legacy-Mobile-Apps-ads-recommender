@@ -133,7 +133,8 @@ func main() { //nolint: funlen
 	}
 	// HealthHandler
 	var healthHandler handlers.HealthHandler
-	getProSuggestionsHandler := handlers.GetProSuggestionsHandler{
+
+	getSuggestionsHandler := handlers.GetSuggestionsHandler{
 		Interactor:          &getSuggestions,
 		CurrencySymbol:      conf.AdConf.CurrencySymbol,
 		UnitOfAccountSymbol: conf.AdConf.UnitOfAccountSymbol,
@@ -165,12 +166,13 @@ func main() { //nolint: funlen
 						Handler: &healthHandler,
 					},
 					{
-						Name:         "Get recommendations for a specific ad",
+						Name:         "Get recommendations for a specific ad using a specific carousel",
 						Method:       "GET",
-						Pattern:      "/recommendations/{carousel:[a-z_]+}/{listID:\\d+}",
-						Handler:      &getProSuggestionsHandler,
+						Pattern:      "/recommendations/{carousel:[a-z_-]+}/{listID:\\d+}",
+						Handler:      &getSuggestionsHandler,
 						RequestCache: "10s",
-					}},
+					},
+				},
 			},
 		},
 	}
