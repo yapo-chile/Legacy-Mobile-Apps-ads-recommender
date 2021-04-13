@@ -17,8 +17,8 @@ type DataMapping interface {
 	Get(string) string
 }
 
-// GetProSuggestionsHandler implements the handler interface and responds to
-type GetProSuggestionsHandler struct {
+// GetSuggestionsHandler implements the handler interface and responds to
+type GetSuggestionsHandler struct {
 	Interactor          usecases.GetSuggestionsInteractor
 	CurrencySymbol      string
 	UnitOfAccountSymbol string
@@ -26,7 +26,7 @@ type GetProSuggestionsHandler struct {
 	Categories          DataMapping
 }
 
-type getProSuggestionsHandlerInput struct {
+type getSuggestionsHandlerInput struct {
 	ListID         string   `path:"listID"`
 	From           int      `query:"from"`
 	Limit          int      `query:"limit"`
@@ -36,7 +36,7 @@ type getProSuggestionsHandlerInput struct {
 
 // getProSuggestionsHandlerOutput struct that represents presenter output.
 // This is the schema of endpoint response
-type getProSuggestionsHandlerOutput struct {
+type getSuggestionsHandlerOutput struct {
 	Ads []AdsOutput `json:"ads"`
 }
 
@@ -150,20 +150,20 @@ func (output *AdsOutput) SetCategory(categories DataMapping) {
 }
 
 // Input returns a fresh, empty instance of getProSuggestionsHandlerInput
-func (*GetProSuggestionsHandler) Input(ir InputRequest) HandlerInput {
-	input := getProSuggestionsHandlerInput{}
+func (*GetSuggestionsHandler) Input(ir InputRequest) HandlerInput {
+	input := getSuggestionsHandlerInput{}
 	ir.Set(&input).FromPath().FromQuery()
 	return &input
 }
 
 // Execute is the main function of the GetProSuggestions handler
-func (h *GetProSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
+func (h *GetSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
 	input, err := ig()
 	if err != nil {
 		return err
 	}
-	in := input.(*getProSuggestionsHandlerInput)
-	results, errSuggestions := h.Interactor.GetProSuggestions(
+	in := input.(*getSuggestionsHandlerInput)
+	results, errSuggestions := h.Interactor.GetSuggestions(
 		in.ListID,
 		in.OptionalParams,
 		in.Limit,
@@ -190,9 +190,9 @@ func (h *GetProSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
 }
 
 // setOutput sets presenter to format the output response for getSuggestions usecase
-func (h *GetProSuggestionsHandler) setOutput(
+func (h *GetSuggestionsHandler) setOutput(
 	ads []domain.Ad, optionalParams []string,
-) (out getProSuggestionsHandlerOutput) {
+) (out getSuggestionsHandlerOutput) {
 	for _, ad := range ads {
 		// get a map with all params on ads as string
 		params := ad.GetFieldsMapString()

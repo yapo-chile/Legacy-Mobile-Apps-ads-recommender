@@ -16,7 +16,7 @@ type mockGetSuggestions struct {
 	mock.Mock
 }
 
-func (m *mockGetSuggestions) GetProSuggestions(
+func (m *mockGetSuggestions) GetSuggestions(
 	listID string,
 	optionalParams []string,
 	size, from int,
@@ -35,44 +35,44 @@ func (m *mockDataMapping) Get(key string) string {
 	return args.String(0)
 }
 
-func TestGetProSuggestionsHandlerInput(t *testing.T) {
+func TestGetSuggestionsHandlerInput(t *testing.T) {
 	m := mockGetSuggestions{}
 	mMockInputRequest := MockInputRequest{}
 	mMockTargetRequest := MockTargetRequest{}
 	mMockInputRequest.On(
-		"Set", mock.AnythingOfType("*handlers.getProSuggestionsHandlerInput"),
+		"Set", mock.AnythingOfType("*handlers.getSuggestionsHandlerInput"),
 	).Return(&mMockTargetRequest)
 	mMockTargetRequest.On("FromPath").Return()
 	mMockTargetRequest.On("FromQuery").Return()
 
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		Interactor: &m,
 	}
 	input := h.Input(&mMockInputRequest)
 
-	var expected *getProSuggestionsHandlerInput
+	var expected *getSuggestionsHandlerInput
 	assert.IsType(t, expected, input)
 	m.AssertExpectations(t)
 	mMockTargetRequest.AssertExpectations(t)
 	mMockInputRequest.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsHandlerErrIg(t *testing.T) {
+func TestGetSuggestionsHandlerErrIg(t *testing.T) {
 	response := &goutils.Response{}
 
-	input := &getProSuggestionsHandlerInput{
+	input := &getSuggestionsHandlerInput{
 		ListID: "1",
 	}
 	getter := MakeMockInputGetter(input, response)
 
-	h := GetProSuggestionsHandler{}
+	h := GetSuggestionsHandler{}
 	r := h.Execute(getter)
 
 	expected := response
 	assert.Equal(t, expected, r)
 }
 
-func TestGetProSuggestionsHandlerOK(t *testing.T) {
+func TestGetSuggestionsHandlerOK(t *testing.T) {
 	mInteractor := &mockGetSuggestions{}
 	timeT, _ := time.Parse("2006-01-02 15:04:05", "2020-01-01 10:10:10")
 	ad := domain.Ad{
@@ -80,12 +80,12 @@ func TestGetProSuggestionsHandlerOK(t *testing.T) {
 		ListTime: timeT,
 	}
 	mInteractor.On(
-		"GetProSuggestions", mock.Anything, mock.Anything, mock.Anything,
+		"GetSuggestions", mock.Anything, mock.Anything, mock.Anything,
 	).Return([]domain.Ad{ad}, nil)
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		Interactor: mInteractor,
 	}
-	input := &getProSuggestionsHandlerInput{
+	input := &getSuggestionsHandlerInput{
 		ListID: "1",
 	}
 	getter := MakeMockInputGetter(input, nil)
@@ -93,7 +93,7 @@ func TestGetProSuggestionsHandlerOK(t *testing.T) {
 
 	expected := &goutils.Response{
 		Code: http.StatusOK,
-		Body: getProSuggestionsHandlerOutput{
+		Body: getSuggestionsHandlerOutput{
 			Ads: []AdsOutput{
 				{
 					ListID: "1",
@@ -110,13 +110,13 @@ func TestGetProSuggestionsHandlerError(t *testing.T) {
 	mInteractor := &mockGetSuggestions{}
 	err := fmt.Errorf("err")
 	mInteractor.On(
-		"GetProSuggestions", mock.Anything, mock.Anything, mock.Anything,
+		"GetSuggestions", mock.Anything, mock.Anything, mock.Anything,
 	).Return([]domain.Ad{}, err)
 
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		Interactor: mInteractor,
 	}
-	input := &getProSuggestionsHandlerInput{
+	input := &getSuggestionsHandlerInput{
 		ListID: "1",
 	}
 	getter := MakeMockInputGetter(input, nil)
@@ -135,12 +135,12 @@ func TestGetProSuggestionsHandlerError(t *testing.T) {
 func TestGetProSuggestionsHandlerEmptyResult(t *testing.T) {
 	mInteractor := &mockGetSuggestions{}
 	mInteractor.On(
-		"GetProSuggestions", mock.Anything, mock.Anything, mock.Anything,
+		"GetSuggestions", mock.Anything, mock.Anything, mock.Anything,
 	).Return([]domain.Ad{}, nil)
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		Interactor: mInteractor,
 	}
-	input := &getProSuggestionsHandlerInput{
+	input := &getSuggestionsHandlerInput{
 		ListID: "1",
 	}
 	getter := MakeMockInputGetter(input, nil)
@@ -163,13 +163,13 @@ func TestGetProSuggestionsHandlerUFCurrency(t *testing.T) {
 			ListTime: timeT,
 		},
 	}
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		CurrencySymbol:      "$",
 		UnitOfAccountSymbol: "UF",
 	}
 	r := h.setOutput(ads, []string{})
 
-	expected := getProSuggestionsHandlerOutput{
+	expected := getSuggestionsHandlerOutput{
 		Ads: []AdsOutput{
 			{
 				ListID:   "1",
@@ -192,13 +192,13 @@ func TestGetProSuggestionsHandlerOtherCurrency(t *testing.T) {
 			ListTime: timeT,
 		},
 	}
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		CurrencySymbol:      "$",
 		UnitOfAccountSymbol: "UF",
 	}
 	r := h.setOutput(ads, []string{})
 
-	expected := getProSuggestionsHandlerOutput{
+	expected := getSuggestionsHandlerOutput{
 		Ads: []AdsOutput{
 			{
 				ListID:   "1",
@@ -232,7 +232,7 @@ func TestGetProSuggestionsHandlerOptionalParams(t *testing.T) {
 	mRegions.On("Get", mock.AnythingOfType("string")).Return("Metropolitana").Once()
 	mCategories.On("Get", mock.AnythingOfType("string")).Return("autos, camionetas y 4x4").Once()
 	mCategories.On("Get", mock.AnythingOfType("string")).Return("vehiculos").Once()
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		CurrencySymbol:      "$",
 		UnitOfAccountSymbol: "UF",
 		Regions:             &mRegions,
@@ -249,7 +249,7 @@ func TestGetProSuggestionsHandlerOptionalParams(t *testing.T) {
 		"regDate",
 		"unknown"})
 
-	expected := getProSuggestionsHandlerOutput{
+	expected := getSuggestionsHandlerOutput{
 		Ads: []AdsOutput{
 			{
 				ListID:              "1",
@@ -287,14 +287,14 @@ func TestGetProSuggestionsSetWithoutSubcategory(t *testing.T) {
 		},
 	}
 	mCategories.On("Get", mock.AnythingOfType("string")).Return("vehiculos").Once()
-	h := GetProSuggestionsHandler{
+	h := GetSuggestionsHandler{
 		CurrencySymbol:      "$",
 		UnitOfAccountSymbol: "UF",
 		Categories:          &mCategories,
 	}
 	r := h.setOutput(ads, []string{"category"})
 
-	expected := getProSuggestionsHandlerOutput{
+	expected := getSuggestionsHandlerOutput{
 		Ads: []AdsOutput{
 			{
 				ListID:              "1",
