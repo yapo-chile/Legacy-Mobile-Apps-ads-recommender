@@ -613,7 +613,7 @@ func TestGetDecayFunctionParams(t *testing.T) {
 	for _, testCase := range testCases {
 		tc := testCase
 		t.Run(tc.name, func(t *testing.T) {
-			decayParams := getDecayFunctionParams(tc.decayFuncConf, tc.carouselType)
+			decayParams := getValues(tc.decayFuncConf, tc.carouselType, "decayFunc")
 			assert.Equal(t, tc.expected, decayParams)
 		})
 	}

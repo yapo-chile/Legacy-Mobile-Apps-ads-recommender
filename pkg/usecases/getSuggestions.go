@@ -88,7 +88,7 @@ func (interactor *GetSuggestions) GetSuggestions(
 func (interactor *GetSuggestions) getSuggestionParameters(
 	listID, carouselType string) (params SuggestionParameters, err error) {
 	var ad domain.Ad
-	params.QueryConf = getQueryConfigParams(interactor.SuggestionsParams, carouselType)
+	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
 	if sourceAd, errConv := strconv.ParseBool(params.QueryConf["sourceAd"]); errConv == nil && sourceAd {
 		ad, err = interactor.SuggestionsRepo.GetAd(listID)
 		if err != nil {
@@ -102,7 +102,7 @@ func (interactor *GetSuggestions) getSuggestionParameters(
 		interactor.Logger.ErrorGettingUF(err)
 		return
 	}
-	params.DecayConf = getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
+	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
 	params.QueryString = getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
 	params.Musts = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
 	params.Shoulds = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
@@ -214,55 +214,6 @@ func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]stri
 	return
 }
 
-// getDecayFunctionParams returns a map with decay function values
-func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{},
-	carouselType string) (out map[string]string) {
-	out = setDefault(decayFuncConf, "decayFunc", "name", "field", "origin", "offset", "scale")
-	if len(decayFuncConf[carouselType]["decayFunc"]) == 0 {
-		return
-	}
-	decayFunc := decayFuncConf[carouselType]["decayFunc"][0].(map[string]interface{})
-	if decayFunc["name"] != nil {
-		out["name"] = decayFunc["name"].(string)
-	}
-	if decayFunc["field"] != nil {
-		out["field"] = decayFunc["field"].(string)
-	}
-	if decayFunc["origin"] != nil {
-		out["origin"] = decayFunc["origin"].(string)
-	}
-	if decayFunc["offset"] != nil {
-		out["offset"] = decayFunc["offset"].(string)
-	}
-	if decayFunc["scale"] != nil {
-		out["scale"] = decayFunc["scale"].(string)
-	}
-	return
-}
-
-// getQueryConfigParams returns a map with especific query config values
-func getQueryConfigParams(queryConfig map[string]map[string][]interface{},
-	carouselType string) (out map[string]string) {
-	out = setDefault(queryConfig, "queryConf", "sourceAd", "minTermFreq", "minDocFreq", "maxQueryTerms")
-	if len(queryConfig[carouselType]["queryConf"]) == 0 {
-		return
-	}
-	conf := queryConfig[carouselType]["queryConf"][0].(map[string]interface{})
-	if conf["minTermFreq"] != nil {
-		out["minTermFreq"] = conf["minTermFreq"].(string)
-	}
-	if conf["minDocFreq"] != nil {
-		out["minDocFreq"] = conf["minDocFreq"].(string)
-	}
-	if conf["maxQueryTerms"] != nil {
-		out["maxQueryTerms"] = conf["maxQueryTerms"].(string)
-	}
-	if conf["sourceAd"] != nil {
-		out["sourceAd"] = conf["sourceAd"].(string)
-	}
-	return
-}
-
 // calculateMinMaxPriceRange calculates the minimum and maximum
 // price for a range query, where a value is subtracted and added to the price
 // of the ad being requested
@@ -318,20 +269,23 @@ func getSliceString(input []interface{}) (output []string) {
 	return
 }
 
-// setDefault set default values with defined params
-func setDefault(
+// getValues returns a map with a config used in a specific carousel
+func getValues(
 	confValues map[string]map[string][]interface{},
-	confName string, params ...string,
+	carouselType, confName string,
 ) (output map[string]string) {
 	output = make(map[string]string)
-	if len(confValues["default"][confName]) == 0 {
-		return
+	if len(confValues[carouselType][confName]) == 0 {
+		if len(confValues["default"][confName]) == 0 {
+			return
+		}
+		carouselType = "default"
 	}
-	conf := confValues["default"][confName][0].(map[string]interface{})
-	for _, value := range params {
-		if conf[value] != nil {
-			if str, ok := conf[value].(string); ok {
-				output[value] = str
+	conf := confValues[carouselType][confName][0].(map[string]interface{})
+	for key, value := range conf {
+		if value != nil {
+			if str, ok := value.(string); ok {
+				output[key] = str
 			}
 		}
 	}
