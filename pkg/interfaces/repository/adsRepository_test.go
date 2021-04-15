@@ -283,10 +283,7 @@ func TestGetAdsPriceRangeShould(t *testing.T) {
 	parameters := usecases.SuggestionParameters{
 		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "should"},
 	}
-	resp, err := repo.GetAds(
-		"1",
-		parameters,
-		1, 0)
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -320,10 +317,7 @@ func TestGetAdsPriceRangeFilter(t *testing.T) {
 	parameters := usecases.SuggestionParameters{
 		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "filter"},
 	}
-	resp, err := repo.GetAds(
-		"1",
-		parameters,
-		1, 0)
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -359,10 +353,7 @@ func TestGetAdsFieldsOK(t *testing.T) {
 	parameters := usecases.SuggestionParameters{
 		Fields: []string{"test"},
 	}
-	resp, err := repo.GetAds(
-		"1",
-		parameters,
-		1, 0)
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -395,10 +386,7 @@ func TestGetAdsPriceRangeMustNot(t *testing.T) {
 	parameters := usecases.SuggestionParameters{
 		PriceConf: map[string]string{"gte": "5000", "lte": "7000", "uf": "29.000", "type": "mustNot"},
 	}
-	resp, err := repo.GetAds(
-		"1",
-		parameters,
-		1, 0)
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
@@ -436,10 +424,7 @@ func TestGetAdsQueryString(t *testing.T) {
 			},
 		},
 	}
-	resp, err := repo.GetAds(
-		"1",
-		parameters,
-		1, 0)
+	resp, err := repo.GetAds("1", parameters, 1, 0)
 	expected := []domain.Ad{{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)

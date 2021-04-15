@@ -67,7 +67,7 @@ linters:
       - lll
       - misspell
       - nakedret
-      - scopelint
+      - exportloopref
       - staticcheck
       - structcheck
       - stylecheck
