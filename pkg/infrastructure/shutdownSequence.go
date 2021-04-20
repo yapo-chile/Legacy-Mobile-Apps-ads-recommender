@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+
+	"golang.org/x/sys/unix"
 )
 
 // ShutdownSequence is a stack implementation to control the shutdown order of each
@@ -55,7 +57,9 @@ func (s *ShutdownSequence) Listen() {
 		loop := true
 		for loop {
 			sig := <-sigint
-			fmt.Printf("Received signal: %s\n", sig)
+			if !canIgnoreSignal(sig) {
+				fmt.Printf("Received signal: %s\n", sig)
+			}
 			if sig == os.Interrupt {
 				// We received an interrupt signal, shut down.
 				fmt.Printf("Proceeding to shut down\n")
@@ -65,4 +69,8 @@ func (s *ShutdownSequence) Listen() {
 		s.close()
 		// At this point all processes must be done
 	}()
+}
+
+func canIgnoreSignal(s os.Signal) bool {
+	return s == unix.SIGURG
 }

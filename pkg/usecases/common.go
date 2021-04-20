@@ -55,3 +55,17 @@ type Set struct {
 	Date  string  `json:"fecha"`
 	Value float64 `json:"valor"`
 }
+
+// SuggestionParameters contains all values to
+// determinate which Ads should be retrieved as suggestions
+type SuggestionParameters struct {
+	Fields      []string
+	Musts       map[string]string
+	Shoulds     map[string]string
+	MustsNot    map[string]string
+	Filters     map[string]string
+	DecayConf   map[string]string
+	PriceConf   map[string]string
+	QueryConf   map[string]string
+	QueryString []map[string]string
+}

@@ -47,11 +47,11 @@ func (m *mockAdsRepository) GetAd(listID string) (domain.Ad, error) {
 	return args.Get(0).(domain.Ad), args.Error(1)
 }
 func (m *mockAdsRepository) GetAds(
-	musts, shoulds, mustsNot, filters, priceRange, decay map[string]string,
-	queryStrings []map[string]string,
+	listID string,
+	parameters SuggestionParameters,
 	size, from int,
 ) ([]domain.Ad, error) {
-	args := m.Called(musts, shoulds, mustsNot, filters, priceRange, decay, queryStrings, size, from)
+	args := m.Called(listID, parameters, size, from)
 	return args.Get(0).([]domain.Ad), args.Error(1)
 }
 
@@ -123,48 +123,103 @@ func getSuggestionParams(
 	return
 }
 
-func TestGetProSuggestionsOK(t *testing.T) {
+func TestGetSuggestionsOK(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mIndicatorsRepo := mockIndicatorsRepository{}
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
-	priceRange := map[string][]interface{}{
+	params := map[string][]interface{}{
 		"priceRange": {
 			map[string]interface{}{
 				"gte": "100",
 				"lte": "200",
 			},
 		},
+		"queryConf": {
+			map[string]interface{}{
+				"sourceAd": "true",
+			},
+		},
 	}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mIndicatorsRepo.On("GetUF").Return(float64(28000), nil)
 	i := GetSuggestions{
 		SuggestionsRepo:      &mAdsRepo,
 		IndicatorsRepository: &mIndicatorsRepo,
 		MinDisplayedAds:      1,
 		MaxDisplayedAds:      1,
-		SuggestionsParams:    getSuggestionParams("default", priceRange),
+		SuggestionsParams:    getSuggestionParams("default", params),
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mIndicatorsRepo.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsMaxDisplayedAds(t *testing.T) {
+func TestGetSuggestionsWithParametersOK(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
-	mLogger := mockGetSuggestionsLogger{}
+	mIndicatorsRepo := mockIndicatorsRepository{}
 	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
+	params := map[string][]interface{}{
+		"must": {"Category", "SubCategory"},
+		"should": {
+			"Params.BrandID",
+			"Params.ModelID",
+			"Params.Regdate",
+			"Params.Brand",
+			"Params.Model",
+		},
+		"mustNot": {"ListID"},
+		"queryString": {
+			map[string]interface{}{
+				"query":        "(pro OR professional)",
+				"defaultField": "PublisherType",
+			},
+		},
+		"fields": {
+			"Subject", "SubCategory", "Category", "Commune", "Region",
+		},
+		"priceRange": {
+			map[string]interface{}{
+				"gte": "100",
+				"lte": "200",
+			},
+		},
+		"queryConf": {
+			map[string]interface{}{
+				"sourceAd":      "true",
+				"minTermFreq":   "1",
+				"minDocFreq":    "5",
+				"maxQueryTerms": "20",
+			},
+		},
+	}
 	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
+	mIndicatorsRepo.On("GetUF").Return(float64(28000), nil)
+	i := GetSuggestions{
+		SuggestionsRepo:      &mAdsRepo,
+		IndicatorsRepository: &mIndicatorsRepo,
+		MinDisplayedAds:      1,
+		MaxDisplayedAds:      1,
+		SuggestionsParams:    getSuggestionParams("default", params),
+	}
+	expected := ads
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, output)
+	mAdsRepo.AssertExpectations(t)
+	mIndicatorsRepo.AssertExpectations(t)
+}
+func TestGetSuggestionsMaxDisplayedAds(t *testing.T) {
+	mAdsRepo := mockAdsRepository{}
+	mLogger := mockGetSuggestionsLogger{}
+	ads := []domain.Ad{{ListID: 2, Category: "test"}}
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("LimitExceeded", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -175,22 +230,18 @@ func TestGetProSuggestionsMaxDisplayedAds(t *testing.T) {
 		SuggestionsParams: getSuggestionParams("default"),
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", []string{}, 2, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 2, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsMinDisplayedAds(t *testing.T) {
+func TestGetSuggestionsMinDisplayedAds(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}, {ListID: 3, Category: "test"}}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("MinimumQtyNotEnough", mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -201,22 +252,18 @@ func TestGetProSuggestionsMinDisplayedAds(t *testing.T) {
 		Logger:            &mLogger,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsNotEnoughAds(t *testing.T) {
+func TestGetSuggestionsNotEnoughAds(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mLogger.On("NotEnoughAds", mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -227,41 +274,44 @@ func TestGetProSuggestionsNotEnoughAds(t *testing.T) {
 		Logger:            &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", []string{}, 2, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 2, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsGetAdErr(t *testing.T) {
+func TestGetSuggestionsGetAdErr(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
+	params := map[string][]interface{}{
+		"queryConf": {
+			map[string]interface{}{
+				"sourceAd": "true",
+			},
+		},
+	}
 	mAdsRepo.On("GetAd", mock.Anything).Return(domain.Ad{}, fmt.Errorf("error"))
 	mLogger.On("ErrorGettingAd", mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
-		SuggestionsParams: getSuggestionParams("default"),
+		SuggestionsParams: getSuggestionParams("default", params),
 		MinDisplayedAds:   1,
 		MaxDisplayedAds:   2,
 		Logger:            &mLogger,
 	}
-	var expected []domain.Ad
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "default")
+	expected := []domain.Ad{}
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsGetAdsErr(t *testing.T) {
+func TestGetSuggestionsGetAdsErr(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return([]domain.Ad{}, fmt.Errorf(""))
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]domain.Ad{}, fmt.Errorf(""))
 	mLogger.On("ErrorGettingAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -272,23 +322,19 @@ func TestGetProSuggestionsGetAdsErr(t *testing.T) {
 		Logger:            &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
+func TestGetSuggestionsOKWithPhoneLink(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mAdContactRepo := mockAdContactRepository{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, nil)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -298,24 +344,20 @@ func TestGetProSuggestionsOKWithPhoneLink(t *testing.T) {
 		MaxDisplayedAds:   2,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", []string{"phonelink"}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{"phonelink"}, 1, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mAdContactRepo.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
+func TestGetSuggestionsWithPhoneLinkErr(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mAdContactRepo := mockAdContactRepository{}
 	mLogger := mockGetSuggestionsLogger{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
 	ads := []domain.Ad{{ListID: 2, Category: "test"}}
 	phones := map[string]string{"2": "998765432"}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
-	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-	).Return(ads, nil)
+	mAdsRepo.On("GetAds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(ads, nil)
 	mAdContactRepo.On("GetAdsPhone", mock.Anything).Return(phones, fmt.Errorf("error"))
 	mLogger.On("ErrorGettingAdsContact", mock.Anything, mock.Anything)
 	i := GetSuggestions{
@@ -327,7 +369,7 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 		Logger:            &mLogger,
 	}
 	expected := ads
-	output, err := i.GetProSuggestions("1", []string{"phonelink"}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{"phonelink"}, 1, 0, "default")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -335,11 +377,9 @@ func TestGetProSuggestionsWithPhoneLinkErr(t *testing.T) {
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsGetAdsInvalidCarousel(t *testing.T) {
+func TestGetSuggestionsGetAdsInvalidCarousel(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
-	ad := domain.Ad{ListID: 1, Category: "test"}
-	mAdsRepo.On("GetAd", mock.Anything).Return(ad, nil)
 	mLogger.On("InvalidCarousel", mock.Anything)
 	i := GetSuggestions{
 		SuggestionsRepo:   &mAdsRepo,
@@ -350,14 +390,14 @@ func TestGetProSuggestionsGetAdsInvalidCarousel(t *testing.T) {
 		Logger:            &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "not_a_carousel")
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "not_a_carousel")
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
 	mLogger.AssertExpectations(t)
 }
 
-func TestGetProSuggestionsGetAdsErrUF(t *testing.T) {
+func TestGetSuggestionsGetAdsErrUF(t *testing.T) {
 	mAdsRepo := mockAdsRepository{}
 	mIndicatorsRepo := mockIndicatorsRepository{}
 	mLogger := mockGetSuggestionsLogger{}
@@ -367,6 +407,11 @@ func TestGetProSuggestionsGetAdsErrUF(t *testing.T) {
 			map[string]interface{}{
 				"gte": "100",
 				"lte": "200",
+			},
+		},
+		"queryConf": {
+			map[string]interface{}{
+				"sourceAd": "true",
 			},
 		},
 	}
@@ -383,7 +428,7 @@ func TestGetProSuggestionsGetAdsErrUF(t *testing.T) {
 		Logger:               &mLogger,
 	}
 	expected := []domain.Ad{}
-	output, err := i.GetProSuggestions("1", []string{}, 1, 0, "default")
+	output, err := i.GetSuggestions("1", []string{}, 1, 0, "default")
 	assert.Error(t, err)
 	assert.Equal(t, expected, output)
 	mAdsRepo.AssertExpectations(t)
@@ -568,7 +613,7 @@ func TestGetDecayFunctionParams(t *testing.T) {
 	for _, testCase := range testCases {
 		tc := testCase
 		t.Run(tc.name, func(t *testing.T) {
-			decayParams := getDecayFunctionParams(tc.decayFuncConf, tc.carouselType)
+			decayParams := getValues(tc.decayFuncConf, tc.carouselType, "decayFunc")
 			assert.Equal(t, tc.expected, decayParams)
 		})
 	}

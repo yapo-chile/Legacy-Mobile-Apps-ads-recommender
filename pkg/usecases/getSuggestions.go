@@ -40,59 +40,35 @@ type GetSuggestionsLogger interface {
 	InvalidCarousel(carousel string)
 }
 
-// GetProSuggestions search ad details using listId and returns a slice with ad objects
-// When ad with listID is found, use the parameters on this object to search ad suggestions.
+// GetSuggestions search ad details using listId and returns a slice with ad objects
+// When sourceAd parameter is true, it retrieves an ad using a listID.
+// It translates data from conf y/o ad fields as parameters to search a slice with ad suggestions.
 // When suggestions retrieved on repo are less than MinDisplayedAds value, it returns empty slice.
 // If something goes wrong returns empty slice and error.
-func (interactor *GetSuggestions) GetProSuggestions(
+func (interactor *GetSuggestions) GetSuggestions(
 	listID string, optionalParams []string, size, from int, carouselType string,
 ) (ads []domain.Ad, err error) {
-	if size > interactor.MaxDisplayedAds {
-		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
-		size = interactor.RequestedAdsQty
-	}
-	if size < interactor.MinDisplayedAds {
-		interactor.Logger.MinimumQtyNotEnough(size, interactor.MinDisplayedAds, interactor.RequestedAdsQty)
-		size = interactor.RequestedAdsQty
-	}
-
-	ad, err := interactor.SuggestionsRepo.GetAd(listID)
-	if err != nil {
-		interactor.Logger.ErrorGettingAd(listID, err)
-		return
-	}
+	ads = []domain.Ad{}
+	size = interactor.getSize(size)
 	if _, ok := interactor.SuggestionsParams[carouselType]; !ok {
 		interactor.Logger.InvalidCarousel(carouselType)
-		return []domain.Ad{}, fmt.Errorf(ErrInvalidCarousel, carouselType)
+		err = fmt.Errorf(ErrInvalidCarousel, carouselType)
+		return
 	}
-
-	priceParameters, err := interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	parameters, err := interactor.getSuggestionParameters(listID, carouselType)
 	if err != nil {
-		interactor.Logger.ErrorGettingUF(err)
-		return []domain.Ad{}, err
+		return
 	}
-	decayParameters := getDecayFunctionParams(interactor.SuggestionsParams, carouselType)
-	queryStringParameters := getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
-	adMap := ad.GetFieldsMapString()
-	mustParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
-	shouldParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
-	mustNotParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
-	filtersParameters := getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
-
 	ads, err = interactor.SuggestionsRepo.GetAds(
-		mustParameters,
-		shouldParameters,
-		mustNotParameters,
-		filtersParameters,
-		priceParameters,
-		decayParameters,
-		queryStringParameters,
+		listID,
+		parameters,
 		size,
 		from,
 	)
 
 	if err != nil {
-		interactor.Logger.ErrorGettingAds(mustParameters, shouldParameters, mustNotParameters, err)
+		interactor.Logger.ErrorGettingAds(
+			parameters.Musts, parameters.Shoulds, parameters.MustsNot, err)
 		return
 	}
 
@@ -105,6 +81,35 @@ func (interactor *GetSuggestions) GetProSuggestions(
 		interactor.Logger.ErrorGettingAdsContact(listID, err)
 	}
 	return ads, nil
+}
+
+// getSuggestionParameters creates and retrieves a struct containing all parameters to get ad suggestions
+// if something goes wrong it retrieves and empty struct and error
+func (interactor *GetSuggestions) getSuggestionParameters(
+	listID, carouselType string) (params SuggestionParameters, err error) {
+	var ad domain.Ad
+	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
+	if sourceAd, errConv := strconv.ParseBool(params.QueryConf["sourceAd"]); errConv == nil && sourceAd {
+		ad, err = interactor.SuggestionsRepo.GetAd(listID)
+		if err != nil {
+			interactor.Logger.ErrorGettingAd(listID, err)
+			return
+		}
+	}
+	adMap := ad.GetFieldsMapString()
+	params.PriceConf, err = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	if err != nil {
+		interactor.Logger.ErrorGettingUF(err)
+		return
+	}
+	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
+	params.QueryString = getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
+	params.Musts = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
+	params.Shoulds = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
+	params.MustsNot = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
+	params.Filters = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
+	params.Fields = getSliceString(interactor.SuggestionsParams[carouselType]["fields"])
+	return
 }
 
 // getAdsContact if phonelink is required connect to adContact repo
@@ -178,6 +183,19 @@ func (interactor *GetSuggestions) getPriceRange(
 	return out, err
 }
 
+// getSize retrieves default size if input size equals zero, otherwise returns size
+func (interactor *GetSuggestions) getSize(size int) int {
+	if size > interactor.MaxDisplayedAds {
+		interactor.Logger.LimitExceeded(size, interactor.MaxDisplayedAds, interactor.RequestedAdsQty)
+		size = interactor.RequestedAdsQty
+	}
+	if size < interactor.MinDisplayedAds {
+		interactor.Logger.MinimumQtyNotEnough(size, interactor.MinDisplayedAds, interactor.RequestedAdsQty)
+		size = interactor.RequestedAdsQty
+	}
+	return size
+}
+
 // getQueryStringParams returns a map query string values
 func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]string) {
 	out = make([]map[string]string, 0)
@@ -193,25 +211,6 @@ func getQueryStringParams(queryStringSlice []interface{}) (out []map[string]stri
 
 		out = append(out, outTmp)
 	}
-	return
-}
-
-// getDecayFunctionParams returns a map with decay function values
-func getDecayFunctionParams(decayFuncConf map[string]map[string][]interface{},
-	carouselType string) (out map[string]string) {
-	out = make(map[string]string)
-	if len(decayFuncConf[carouselType]["decayFunc"]) == 0 {
-		carouselType = "default"
-	}
-
-	decayFunc := decayFuncConf[carouselType]["decayFunc"][0].(map[string]interface{})
-
-	out["name"] = decayFunc["name"].(string)
-	out["field"] = decayFunc["field"].(string)
-	out["origin"] = decayFunc["origin"].(string)
-	out["offset"] = decayFunc["offset"].(string)
-	out["scale"] = decayFunc["scale"].(string)
-
 	return
 }
 
@@ -255,6 +254,39 @@ func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (o
 
 		if adMap[paramValue] != "" {
 			out[paramKey] = adMap[paramValue]
+		}
+	}
+	return
+}
+
+// getSliceString transforms interface slice to string slice
+func getSliceString(input []interface{}) (output []string) {
+	for _, value := range input {
+		if str, ok := value.(string); ok {
+			output = append(output, str)
+		}
+	}
+	return
+}
+
+// getValues returns a map with a config used in a specific carousel
+func getValues(
+	confValues map[string]map[string][]interface{},
+	carouselType, confName string,
+) (output map[string]string) {
+	output = make(map[string]string)
+	if len(confValues[carouselType][confName]) == 0 {
+		if len(confValues["default"][confName]) == 0 {
+			return
+		}
+		carouselType = "default"
+	}
+	conf := confValues[carouselType][confName][0].(map[string]interface{})
+	for key, value := range conf {
+		if value != nil {
+			if str, ok := value.(string); ok {
+				output[key] = str
+			}
 		}
 	}
 	return

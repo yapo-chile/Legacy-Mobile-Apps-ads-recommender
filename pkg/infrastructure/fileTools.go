@@ -3,7 +3,6 @@ package infrastructure
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +35,7 @@ func (t *FileTools) FileExist(fileName string) bool {
 
 // LoadJSONFromFile Loads a Json from file
 func (t *FileTools) LoadJSONFromFile(fileName string, dest interface{}) error {
-	content, err := ioutil.ReadFile(t.FilesPath + fileName)
+	content, err := os.ReadFile(t.FilesPath + fileName)
 	if err != nil {
 		return err
 	}

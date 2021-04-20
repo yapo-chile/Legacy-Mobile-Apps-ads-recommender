@@ -17,7 +17,12 @@
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "60d"
-		}]
+		}],
+		"queryConf":[
+			{
+				"sourceAd": "false"
+			}
+		]
 	},
 	"post_adreply_inmo": {
 		"must": ["RegionID","CommuneID","CategoryID"],
@@ -38,7 +43,32 @@
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "60d"
-		}]
+		}],
+		"queryConf":[
+			{
+				"sourceAd": "true"
+			}
+		]
+	},
+	"suggested-ads": {
+		"fields": ["Subject", "SubCategory.keyword", "Category.keyword", "Commune.keyword", "Region.keyword"],
+		"decayFunc": [
+			{
+			"name": "gauss",
+			"field": "ListTime",
+			"origin": "now/1d",
+			"offset": "1d",
+			"scale": "30d"
+			}
+		],
+		"queryConf":[
+			{
+				"minTermFreq": "1",
+				"minDocFreq": "5",
+				"maxQueryTerms": "20",
+				"sourceAd": "false"
+			}
+		]
 	},
 	"default": {
 		"must": ["Category","SubCategory"],
@@ -54,6 +84,14 @@
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "7d"
-		}]
+		}],
+		"queryConf":[
+			{
+				"minTermFreq": "1",
+				"minDocFreq": "5",
+				"maxQueryTerms": "20",
+				"sourceAd": "true"
+			}
+		]
 	}
 }
