@@ -462,3 +462,11 @@ func TestProcessLikeTemplateOK(t *testing.T) {
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
 }
+
+func TestProcessLikeTemplateEmpty(t *testing.T) {
+	repo := adsRepository{}
+	fields := []string{"Test"}
+	config := map[string]string{"minTermFreq": "1", "minDocFreq": "1", "maxQueryTerms": "1"}
+	resp := repo.processLikeTemplate("1", fields, config)
+	assert.Empty(t, resp)
+}
