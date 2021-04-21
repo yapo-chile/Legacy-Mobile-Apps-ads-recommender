@@ -94,7 +94,6 @@ func (repo *adsRepository) GetAds(
 	shouldsParams := repo.getBoolParameters(parameters.Shoulds)
 	filtersParams := repo.getFilters(parameters.Filters)
 	queryStringParams := repo.getQueryString(parameters.QueryString)
-	likeParams := repo.processLikeTemplate(listID, parameters.Fields, parameters.QueryConf)
 
 	if len(parameters.PriceConf) > 0 {
 		priceParams := repo.processPriceTemplate(parameters.PriceConf)
@@ -112,7 +111,8 @@ func (repo *adsRepository) GetAds(
 	if len(queryStringParams) > 0 {
 		mustsParams = joinParams(mustsParams, queryStringParams)
 	}
-	if len(likeParams) > 0 {
+	if len(parameters.Fields) > 0 {
+		likeParams := repo.processLikeTemplate(listID, parameters.Fields, parameters.QueryConf)
 		mustsParams = joinParams(likeParams, mustsParams)
 	}
 	params := map[string]string{
