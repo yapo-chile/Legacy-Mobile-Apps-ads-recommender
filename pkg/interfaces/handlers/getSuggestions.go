@@ -206,7 +206,7 @@ func (h *GetSuggestionsHandler) setOutput(
 				Medium: ad.Image.Medium,
 				Small:  ad.Image.Small,
 			},
-			URL: params["url"],
+			URL: params["url"] + ".html",
 		}
 		if ad.Currency == "uf" {
 			adOutTemp.Currency = h.UnitOfAccountSymbol
