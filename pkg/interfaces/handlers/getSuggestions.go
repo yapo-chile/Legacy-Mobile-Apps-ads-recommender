@@ -206,7 +206,7 @@ func (h *GetSuggestionsHandler) setOutput(
 				Medium: ad.Image.Medium,
 				Small:  ad.Image.Small,
 			},
-			URL: params["url"] + ".html",
+			URL: fixedURL(params["url"]),
 		}
 		if ad.Currency == "uf" {
 			adOutTemp.Currency = h.UnitOfAccountSymbol
@@ -247,4 +247,12 @@ func (h *GetSuggestionsHandler) setOutput(
 		out.Ads = append(out.Ads, adOutTemp)
 	}
 	return out
+}
+
+// fixedURL returns a valid page to redirect
+func fixedURL(url string) string {
+	if url != "" && !strings.HasSuffix(url, ".html") {
+		url += ".html"
+	}
+	return url
 }
