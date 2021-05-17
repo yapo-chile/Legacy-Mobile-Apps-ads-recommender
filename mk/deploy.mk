@@ -2,7 +2,7 @@
 docker-publish: build
 	@echoTitle "Publishing docker image to Artifactory"
 	${DOCKER} login --username "${ARTIFACTORY_USER}" --password "${ARTIFACTORY_PWD}" "${DOCKER_REGISTRY}"
-	${DOCKER} push "${DOCKER_IMAGE}"
+	${DOCKER} push "${DOCKER_IMAGE}" --all-tags
 
 ## Upload helm charts for deploying on k8s
 helm-publish:
