@@ -8,7 +8,7 @@ type getSuggestionsLogger struct {
 
 // LimitExceeded logs ads limit exceeded
 func (l *getSuggestionsLogger) LimitExceeded(size, maxDisplayedAds, defaultAdsQty int) {
-	l.logger.Info(
+	l.logger.Debug(
 		"requesting %d ads but the limit to display is %d, setting size on %d",
 		size, maxDisplayedAds, defaultAdsQty,
 	)
@@ -16,7 +16,7 @@ func (l *getSuggestionsLogger) LimitExceeded(size, maxDisplayedAds, defaultAdsQt
 
 // MinimumQtyNotEnough logs when the minimum ads are not enough
 func (l *getSuggestionsLogger) MinimumQtyNotEnough(size, minDisplayedAds, defaultAdsQty int) {
-	l.logger.Info(
+	l.logger.Debug(
 		"requesting %d ads but the minimum ads quantity to display is %d, setting size on %d",
 		size, minDisplayedAds, defaultAdsQty,
 	)
@@ -39,7 +39,7 @@ func (l *getSuggestionsLogger) ErrorGettingUF(err error) {
 
 // NotEnoughAds logs when ads returned are not enough
 func (l *getSuggestionsLogger) NotEnoughAds(listID string, lenAds int) {
-	l.logger.Info("cannot get enough ads using listID %s, just got %d ads", listID, lenAds)
+	l.logger.Warn("cannot get enough ads using listID %s, just got %d ads", listID, lenAds)
 }
 
 // ErrorGettingAdsContact logs when cannot get ads contact
