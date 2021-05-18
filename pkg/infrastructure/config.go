@@ -51,6 +51,7 @@ type CircuitBreakerConf struct {
 type AdsRecommenderClientConf struct {
 	TimeOut            int    `env:"TIMEOUT" envDefault:"30"`
 	GetHealthcheckPath string `env:"HEALTH_PATH" envDefault:"/get/healthcheck"`
+	DefaultCacheTTL    string `env:"DEFAULT_CACHE_TTL" envDefault:"30m"`
 }
 
 // CorsConf holds cors headers
