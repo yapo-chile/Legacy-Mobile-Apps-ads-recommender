@@ -57,21 +57,15 @@ func TestGetSuggestionsHandlerInput(t *testing.T) {
 	mMockInputRequest.AssertExpectations(t)
 }
 
-func TestGetSuggestionsHandlerErrIg(t *testing.T) {
-	response := &goutils.Response{}
-
-	input := &getSuggestionsHandlerInput{
-		ListID: "1",
-	}
+func TestGetSuggestionsHandlerResponseIg(t *testing.T) {
+	response := &goutils.Response{Code: http.StatusOK}
+	input := &getSuggestionsHandlerInput{}
 	getter := MakeMockInputGetter(input, response)
-
 	h := GetSuggestionsHandler{}
 	r := h.Execute(getter)
-
 	expected := response
 	assert.Equal(t, expected, r)
 }
-
 func TestGetSuggestionsHandlerOK(t *testing.T) {
 	mInteractor := &mockGetSuggestions{}
 	timeT, _ := time.Parse("2006-01-02 15:04:05", "2020-01-01 10:10:10")
@@ -320,5 +314,11 @@ func TestSetFieldFalse(t *testing.T) {
 	output := AdsOutput{}
 	result := output.setField("test", "a")
 	expected := false
+	assert.Equal(t, expected, result)
+}
+
+func TestSetFixedURL(t *testing.T) {
+	expected := "example.html"
+	result := fixedURL("example")
 	assert.Equal(t, expected, result)
 }
