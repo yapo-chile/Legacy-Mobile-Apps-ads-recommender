@@ -158,9 +158,11 @@ func (*GetSuggestionsHandler) Input(ir InputRequest) HandlerInput {
 
 // Execute is the main function of the GetProSuggestions handler
 func (h *GetSuggestionsHandler) Execute(ig InputGetter) *goutils.Response {
-	input, err := ig()
-	if err != nil {
-		return err
+	input, response := ig()
+	if response != nil {
+		if response.Code == http.StatusOK {
+			return response
+		}
 	}
 	in := input.(*getSuggestionsHandlerInput)
 	results, errSuggestions := h.Interactor.GetSuggestions(
