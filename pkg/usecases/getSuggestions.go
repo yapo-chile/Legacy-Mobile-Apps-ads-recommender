@@ -55,17 +55,16 @@ func (interactor *GetSuggestions) GetSuggestions(
 		err = fmt.Errorf(ErrInvalidCarousel, carouselType)
 		return
 	}
-	parameters, err := interactor.getSuggestionParameters(listID, carouselType)
+	parameters, adID, err := interactor.getSuggestionParameters(listID, carouselType)
 	if err != nil {
 		return
 	}
 	ads, err = interactor.SuggestionsRepo.GetAds(
-		listID,
+		adID,
 		parameters,
 		size,
 		from,
 	)
-
 	if err != nil {
 		interactor.Logger.ErrorGettingAds(
 			parameters.Musts, parameters.Shoulds, parameters.MustsNot, err)
@@ -76,6 +75,7 @@ func (interactor *GetSuggestions) GetSuggestions(
 		interactor.Logger.NotEnoughAds(listID, len(ads))
 		return []domain.Ad{}, nil
 	}
+
 	ads, err = interactor.getAdsContact(ads, optionalParams)
 	if err != nil {
 		interactor.Logger.ErrorGettingAdsContact(listID, err)
@@ -86,22 +86,21 @@ func (interactor *GetSuggestions) GetSuggestions(
 // getSuggestionParameters creates and retrieves a struct containing all parameters to get ad suggestions
 // if something goes wrong it retrieves and empty struct and error
 func (interactor *GetSuggestions) getSuggestionParameters(
-	listID, carouselType string) (params SuggestionParameters, err error) {
+	listID, carouselType string) (params SuggestionParameters, adID string, err error) {
 	var ad domain.Ad
-	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
-	if sourceAd, errConv := strconv.ParseBool(params.QueryConf["sourceAd"]); errConv == nil && sourceAd {
-		ad, err = interactor.SuggestionsRepo.GetAd(listID)
-		if err != nil {
-			interactor.Logger.ErrorGettingAd(listID, err)
-			return
-		}
+	ad, err = interactor.SuggestionsRepo.GetAd(listID)
+	if err != nil {
+		interactor.Logger.ErrorGettingAd(listID, err)
+		return
 	}
+	adID = strconv.FormatInt(ad.AdID, 10)
 	adMap := ad.GetFieldsMapString()
 	params.PriceConf, err = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
 	if err != nil {
 		interactor.Logger.ErrorGettingUF(err)
 		return
 	}
+	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
 	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
 	params.QueryString = getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
 	params.Musts = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
@@ -245,7 +244,7 @@ func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (o
 		paramKey := param.(string)
 		var paramValue string
 
-		if strings.HasPrefix(paramKey, "Params.") {
+		if strings.HasPrefix(paramKey, "params.") {
 			paramSlice := strings.Split(paramKey, ".")
 			paramValue = strings.ToLower(paramSlice[len(paramSlice)-1])
 		} else {

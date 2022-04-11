@@ -9,6 +9,7 @@ import (
 
 // Ad struct for single ad representation
 type Ad struct {
+	AdID          int64
 	ListID        int64
 	CategoryID    int64
 	CommuneID     int64

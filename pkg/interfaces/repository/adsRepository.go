@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -85,7 +86,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters and fields) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	listID string,
+	adID string,
 	parameters usecases.SuggestionParameters,
 	size, from int,
 ) (ads []domain.Ad, err error) {
@@ -112,7 +113,7 @@ func (repo *adsRepository) GetAds(
 		mustsParams = joinParams(mustsParams, queryStringParams)
 	}
 	if len(parameters.Fields) > 0 {
-		likeParams := repo.processLikeTemplate(listID, parameters.Fields, parameters.QueryConf)
+		likeParams := repo.processLikeTemplate(adID, parameters.Fields, parameters.QueryConf)
 		mustsParams = joinParams(likeParams, mustsParams)
 	}
 	params := map[string]string{
@@ -151,7 +152,6 @@ func (repo *adsRepository) getAdsProcess(
 		return
 	}
 	var parsed elasticResponse
-
 	if err = json.Unmarshal([]byte(response), &parsed); err != nil {
 		return
 	}
@@ -196,11 +196,11 @@ func (repo *adsRepository) processPriceTemplate(priceRange map[string]string) st
 // processLikeTemplate returns the more like this query template as string
 // to be used in the final query
 func (repo *adsRepository) processLikeTemplate(
-	listID string,
+	adID string,
 	fields []string,
 	config map[string]string) string {
 	params := map[string]string{
-		"ListID":        listID,
+		"AdID":          adID,
 		"Fields":        fmt.Sprintf("\"%s\"", strings.Join(fields, "\",\"")),
 		"MinTermFreq":   config["minTermFreq"],
 		"MinDocFreq":    config["minDocFreq"],
@@ -262,17 +262,18 @@ func (repo *adsRepository) getMainImage(imgs []usecases.AdMedia) domain.Image {
 // fillAd parse data from Ad struct on usecases to Ad domain object
 func (repo *adsRepository) fillAd(ad usecases.Ad) domain.Ad {
 	return domain.Ad{
+		AdID:          ad.AdID,
 		ListID:        ad.ListID,
 		UserID:        ad.UserID,
-		CategoryID:    ad.CategoryID,
-		Category:      ad.Category,
+		CategoryID:    ad.Category.ParentID,
+		Category:      ad.Category.ParentName,
 		Type:          ad.Type,
-		CommuneID:     ad.CommuneID,
-		RegionID:      ad.RegionID,
+		CommuneID:     ad.Location.ComunneID,
+		RegionID:      ad.Location.RegionID,
 		Phone:         ad.Phone,
-		Region:        ad.Region,
-		Commune:       ad.Commune,
-		SubCategory:   ad.SubCategory,
+		Region:        ad.Location.RegionName,
+		Commune:       ad.Location.CommuneName,
+		SubCategory:   ad.Category.Name,
 		Name:          ad.Name,
 		Body:          ad.Body,
 		OldPrice:      ad.OldPrice,
@@ -280,10 +281,10 @@ func (repo *adsRepository) fillAd(ad usecases.Ad) domain.Ad {
 		Subject:       ad.Subject,
 		Price:         ad.Price,
 		PublisherType: ad.PublisherType,
-		Currency:      ad.Params["Currency"],
-		URL:           repo.fillURL(ad.Subject, ad.ListID, ad.RegionID),
+		Currency:      fmt.Sprintf("%v",ad.Params["Currency"].Value),
+		URL:           repo.fillURL(ad.Subject, ad.ListID, ad.Location.RegionID),
 		Image:         repo.getMainImage(ad.Media),
-		AdParams:      ad.Params,
+		AdParams:      repo.fillAdParams(ad.Params),
 	}
 }
 
@@ -311,6 +312,29 @@ func (repo *adsRepository) fillURL(subject string, listID, regionID int64) strin
 		},
 		"/",
 	)
+}
+
+// fillAdPArams returns all the ad params as a map[string]string
+func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (output map[string]string) {
+	output = map[string]string{}
+	for key, val := range adParams {
+		if output[key] == "" {
+			if val.Type == "array" {
+				translates := reflect.ValueOf(val.Translate)
+				for i := 0; i < translates.Len(); i++ {
+					output[key] += translates.Index(i).Interface().(string)
+					if i+1 != translates.Len() {
+						output[key] += ","
+					}
+				}
+			} else if val.Translate != nil && val.Translate != "" {
+				output[key] = fmt.Sprintf("%v", val.Translate)
+			} else {
+				output[key] = fmt.Sprintf("%v", val.Value)
+			}
+		}
+	}
+	return
 }
 
 func sortedKeys(m map[string]string) (keys []string) {
