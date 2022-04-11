@@ -90,6 +90,8 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.BatchSize,
 		conf.ElasticSearchConf.SearchTimeout,
 		conf.ElasticSearchConf.Host+":"+conf.ElasticSearchConf.Port,
+		conf.ElasticSearchConf.Username,
+		conf.ElasticSearchConf.Password,
 		logger,
 	)
 	HTTPHandler := infrastructure.NewHTTPHandler(logger)

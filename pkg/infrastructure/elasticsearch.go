@@ -51,7 +51,7 @@ type CauseBulk struct {
 func NewElasticHandlerHandler(
 	maxIdleConns, maxIdleConnsPerHost, maxConnsPerHost, idleConnTimeout, batchSize int,
 	searchTimeout time.Duration,
-	addresses string,
+	addresses, userName, password string,
 	logger loggers.Logger,
 ) *ElasticHandler {
 	cfg := elasticsearch.Config{
@@ -64,6 +64,8 @@ func NewElasticHandlerHandler(
 			MaxConnsPerHost:     maxConnsPerHost,
 			IdleConnTimeout:     time.Duration(idleConnTimeout) * time.Second,
 		},
+		Username: userName,
+		Password: password,
 	}
 	es7, _ := elasticsearch.NewClient(cfg)
 	return &ElasticHandler{
@@ -142,6 +144,7 @@ func (es *ElasticHandler) Search(index, query string, size, from int) (string, e
 	defer res.Body.Close()
 	// Check response status
 	response, err := ioutil.ReadAll(res.Body)
+
 	return string(response), err
 }
 

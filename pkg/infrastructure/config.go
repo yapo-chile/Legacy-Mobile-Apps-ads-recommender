@@ -102,6 +102,8 @@ type ElasticSearchConf struct {
 	SearchResultPage    int           `env:"SEARCH_RESULT_PAGE" envDefault:"0"`
 	SearchTimeout       time.Duration `env:"SEARCH_TIMEOUT" envDefault:"3s"`
 	QueryTemplates      string        `env:"QUERY_TEMPLATES" envDefault:"resources/queries/"`
+	Username            string        `env:"USERNAME" envDefault:"user"`
+	Password            string        `env:"PASSWORD" envDefault:"password"`
 }
 
 // GetHeaders return map of cors used
