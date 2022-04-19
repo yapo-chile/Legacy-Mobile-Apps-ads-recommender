@@ -3,6 +3,7 @@ variables:
   GO_PROJECT: gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender
   CHART_DIR: k8s/$CI_PROJECT_NAME
   CI_JOB_TIMESTAMP: date-tag
+  DOCKER_TLS_CERTDIR: "/certs"
 
 include:
   - project: 'yapo_team/yotf/sre-team/sre-services/ci-templates/golang-pipeline-template'
