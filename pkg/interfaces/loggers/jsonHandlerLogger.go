@@ -5,7 +5,7 @@ import (
 
 	"github.com/Yapo/goutils"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/handlers"
 )
 
 type jsonHandlerDefaultLogger struct {

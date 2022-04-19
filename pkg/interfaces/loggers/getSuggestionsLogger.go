@@ -1,6 +1,6 @@
 package loggers
 
-import "github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+import "gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 
 type getSuggestionsLogger struct {
 	logger Logger

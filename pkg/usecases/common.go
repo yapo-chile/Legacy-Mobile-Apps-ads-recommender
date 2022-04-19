@@ -3,7 +3,7 @@ package usecases
 import (
 	"time"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
 )
 
 // AdMedia holds ad images data

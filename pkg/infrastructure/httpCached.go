@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/anevsky/cachego/memory"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/repository"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/loggers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/repository"
 )
 
 type httpCachedHandler struct {

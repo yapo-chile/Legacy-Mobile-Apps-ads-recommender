@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/repository"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/infrastructure"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/handlers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/loggers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/repository"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 )
 
 func main() { //nolint: funlen

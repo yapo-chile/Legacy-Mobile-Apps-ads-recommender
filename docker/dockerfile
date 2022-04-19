@@ -2,7 +2,7 @@ FROM golang:1.16 AS gobuilder
 
 ARG APPNAME
 
-WORKDIR /go/src/github.mpi-internal.com/Yapo/${APPNAME}
+WORKDIR /go/src/gitlab.com/yapo_team/mobile-apps/${APPNAME}
 COPY ./ .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o /app.linux cmd/${APPNAME}/main.go
 

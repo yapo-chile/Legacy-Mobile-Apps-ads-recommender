@@ -9,7 +9,7 @@ import (
 	"github.com/Yapo/goutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
 )
 
 type mockGetSuggestions struct {
