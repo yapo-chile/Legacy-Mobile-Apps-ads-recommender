@@ -12,16 +12,19 @@ import (
 type indicatorsRepository struct {
 	HTTPCachedHandler HTTPCachedHandler
 	UFPath            string
+	DefaultValue      float64
 }
 
 // NewIndicatorsRepository returns a indicatorsRepository instance
 func NewIndicatorsRepository(
 	httpCachedHandler HTTPCachedHandler,
 	ufPath string,
+	defaultValue int,
 ) usecases.IndicatorsRepository {
 	return &indicatorsRepository{
 		HTTPCachedHandler: httpCachedHandler,
 		UFPath:            ufPath,
+		DefaultValue:      float64(defaultValue),
 	}
 }
 
@@ -41,8 +44,8 @@ func (repo *indicatorsRepository) GetUF() (float64, error) {
 			if len(ufAPIResponse.Sets) > 0 {
 				return ufAPIResponse.Sets[0].Value, nil
 			}
-			return 0, fmt.Errorf(usecases.ErrGetUF)
+			return repo.DefaultValue, fmt.Errorf(usecases.ErrGetUF)
 		}
 	}
-	return 0, err
+	return repo.DefaultValue, err
 }

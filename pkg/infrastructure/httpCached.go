@@ -96,6 +96,6 @@ func (*httpCachedHandler) NewRequest() repository.HTTPRequest {
 		innerRequest: http.Request{
 			Header: make(http.Header),
 		},
-		timeOut: time.Second,
+		timeOut: time.Duration(10),
 	}
 }

@@ -113,6 +113,7 @@ func main() { //nolint: funlen
 	indicatorsRepository := repository.NewIndicatorsRepository(
 		httpCachedIndicatorHandler,
 		conf.IndicatorsConf.UFPath,
+		conf.IndicatorsConf.DefaultValue,
 	)
 
 	if err := infrastructure.LoadJSONFromFile(
