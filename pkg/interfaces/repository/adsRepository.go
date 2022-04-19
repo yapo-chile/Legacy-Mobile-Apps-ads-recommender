@@ -75,7 +75,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 	if err != nil {
 		return
 	}
-	if len(ads) != 1 {
+	if len(ads) < 1 {
 		err = fmt.Errorf("get ad fails to get it, len: %d", len(ads))
 		return
 	}
@@ -262,29 +262,30 @@ func (repo *adsRepository) getMainImage(imgs []usecases.AdMedia) domain.Image {
 // fillAd parse data from Ad struct on usecases to Ad domain object
 func (repo *adsRepository) fillAd(ad usecases.Ad) domain.Ad {
 	return domain.Ad{
-		AdID:          ad.AdID,
-		ListID:        ad.ListID,
-		UserID:        ad.UserID,
-		CategoryID:    ad.Category.ParentID,
-		Category:      ad.Category.ParentName,
-		Type:          ad.Type,
-		CommuneID:     ad.Location.ComunneID,
-		RegionID:      ad.Location.RegionID,
-		Phone:         ad.Phone,
-		Region:        ad.Location.RegionName,
-		Commune:       ad.Location.CommuneName,
-		SubCategory:   ad.Category.Name,
-		Name:          ad.Name,
-		Body:          ad.Body,
-		OldPrice:      ad.OldPrice,
-		ListTime:      ad.ListTime,
-		Subject:       ad.Subject,
-		Price:         ad.Price,
-		PublisherType: ad.PublisherType,
-		Currency:      fmt.Sprintf("%v",ad.Params["Currency"].Value),
-		URL:           repo.fillURL(ad.Subject, ad.ListID, ad.Location.RegionID),
-		Image:         repo.getMainImage(ad.Media),
-		AdParams:      repo.fillAdParams(ad.Params),
+		AdID:             ad.AdID,
+		ListID:           ad.ListID,
+		UserID:           ad.UserID,
+		CategoryID:       ad.Category.ID,
+		Category:         ad.Category.Name,
+		Type:             ad.Type,
+		CommuneID:        ad.Location.ComunneID,
+		RegionID:         ad.Location.RegionID,
+		Phone:            ad.Phone,
+		Region:           ad.Location.RegionName,
+		Commune:          ad.Location.CommuneName,
+		CategoryParent:   ad.Category.ParentName,
+		CategoryParentID: ad.Category.ParentID,
+		Name:             ad.Name,
+		Body:             ad.Body,
+		OldPrice:         ad.OldPrice,
+		ListTime:         ad.ListTime,
+		Subject:          ad.Subject,
+		Price:            ad.Price,
+		PublisherType:    ad.PublisherType,
+		Currency:         fmt.Sprintf("%v", ad.Params["currency"].Value),
+		URL:              repo.fillURL(ad.Subject, ad.ListID, ad.Location.RegionID),
+		Image:            repo.getMainImage(ad.Media),
+		AdParams:         repo.fillAdParams(ad.Params),
 	}
 }
 
@@ -327,9 +328,9 @@ func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (out
 						output[key] += ","
 					}
 				}
-			} else if val.Translate != nil && val.Translate != "" {
-				output[key] = fmt.Sprintf("%v", val.Translate)
-			} else {
+			} else if val.Type == "json" {
+				// TODO: implement json convertion
+			} else if val.Type == "int" || val.Type == "string" {
 				output[key] = fmt.Sprintf("%v", val.Value)
 			}
 		}

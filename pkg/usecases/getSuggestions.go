@@ -59,6 +59,7 @@ func (interactor *GetSuggestions) GetSuggestions(
 	if err != nil {
 		return
 	}
+
 	ads, err = interactor.SuggestionsRepo.GetAds(
 		adID,
 		parameters,
@@ -100,10 +101,13 @@ func (interactor *GetSuggestions) getSuggestionParameters(
 		interactor.Logger.ErrorGettingUF(err)
 		return
 	}
+
 	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
 	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
 	params.QueryString = getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
+
 	params.Musts = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
+
 	params.Shoulds = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
 	params.MustsNot = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
 	params.Filters = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
@@ -147,9 +151,9 @@ func (interactor *GetSuggestions) getPriceRange(
 		return out, err
 	}
 
-	uf, err := interactor.IndicatorsRepository.GetUF()
-	if err != nil {
-		return out, err
+	uf, errUF := interactor.IndicatorsRepository.GetUF()
+	if errUF != nil {
+		interactor.Logger.ErrorGettingUF(errUF)
 	}
 
 	priceRange := priceRangeSlice[0].(map[string]interface{})
@@ -225,9 +229,6 @@ func calculateMinMaxPriceRange(
 	// UF value
 	if adCurrency == "peso" {
 		adPrice /= uf
-	} else {
-		// if currency is 'uf', divide by 100, because uf price has 2 extra zeroes
-		adPrice /= 100
 	}
 	minPrice := adPrice - float64(minusValue)
 	maxPrice := adPrice + float64(plusValue)
@@ -240,13 +241,16 @@ func calculateMinMaxPriceRange(
 // Params.{param} or simply as {param}
 func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
 	out = make(map[string]string)
+
 	for _, param := range suggestionsParams {
 		paramKey := param.(string)
 		var paramValue string
 
-		if strings.HasPrefix(paramKey, "params.") {
+		if strings.HasPrefix(paramKey, "params.") || strings.HasPrefix(paramKey, "location.") {
 			paramSlice := strings.Split(paramKey, ".")
-			paramValue = strings.ToLower(paramSlice[len(paramSlice)-1])
+			paramValue = strings.ToLower(paramSlice[1])
+		} else if strings.HasPrefix(paramKey, "category.") {
+			paramValue = strings.ReplaceAll(paramKey, ".", "")
 		} else {
 			paramValue = strings.ToLower(paramKey)
 		}
