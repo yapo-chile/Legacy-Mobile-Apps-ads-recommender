@@ -35,7 +35,7 @@ type Ad struct {
 	Params        map[string]Param     `json:"params"`
 }
 
-// Param represents aditional parameters on ads
+// Param represents additional parameters on ads
 type Param struct {
 	Type      string      `json:"type"`
 	Value     interface{} `json:"value"`

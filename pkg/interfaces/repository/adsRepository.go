@@ -315,7 +315,7 @@ func (repo *adsRepository) fillURL(subject string, listID, regionID int64) strin
 	)
 }
 
-// fillAdPArams returns all the ad params as a map[string]string
+// fillAdParams returns all the ad params as a map[string]string
 func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (output map[string]string) {
 	output = map[string]string{}
 	for key, val := range adParams {
@@ -331,11 +331,11 @@ func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (out
 						}
 					}
 				}
-			case "json":
-				// TODO: implement json conversion
 			case "int":
 			case "string":
 				output[key] = fmt.Sprintf("%v", val.Value)
+			default:
+				continue // TODO: implement json conversion if you need it
 			}
 		}
 	}
