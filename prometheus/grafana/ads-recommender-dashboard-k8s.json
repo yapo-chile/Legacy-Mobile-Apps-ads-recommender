@@ -33,7 +33,7 @@
         "name": "VAR_GITHUB_LINK",
         "type": "constant",
         "label": "GITHUB_LINK",
-        "value": "https://github.mpi-internal.com/Yapo/ads-recommender",
+        "value": "https://gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender",
         "description": ""
       },
       {

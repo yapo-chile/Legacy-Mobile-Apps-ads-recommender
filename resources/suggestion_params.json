@@ -1,33 +1,36 @@
 {
 	"post_adreply_inmo_apps": {
-		"must": ["RegionID","CommuneID","CategoryID"],
-		"should": ["Params.EstateType","Params.Rooms"],
-		"mustNot":["ListID"],
+		"must": ["location.regionId","category.id"],
+		"should": ["params.estateType.value","params.rooms.value"],
+		"mustNot":["listId"],
 		"priceRange": [{
 			"gte": "7000",
 			"lte": "9000"
 		}],
 		"queryString": [{
 			"query": "(private OR pro OR professional)",
-			"defaultField": "PublisherType"
+			"defaultField": "publisherType"
 		}],
 		"decayFunc": [{
 			"name": "gauss",
-			"field": "ListTime",
+			"field": "listTime",
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "60d"
 		}],
 		"queryConf":[
 			{
+				"minTermFreq": "1",
+				"minDocFreq": "5",
+				"maxQueryTerms": "20",
 				"sourceAd": "false"
 			}
 		]
 	},
 	"post_adreply_inmo": {
-		"must": ["RegionID","CommuneID","CategoryID"],
-		"should": ["Params.EstateType","Params.Rooms"],
-		"mustNot":["ListID"],
+		"must": ["location.regionId","location.communeId","category.id"],
+		"should": ["params.estateType.value","params.rooms.value"],
+		"mustNot":["listId"],
 		"priceRange": [{
 			"gte": "1000",
 			"lte": "1000",
@@ -35,27 +38,30 @@
 		}],
 		"queryString": [{
 			"query": "(pro OR professional)",
-			"defaultField": "PublisherType"
+			"defaultField": "publisherType"
 		}],
 		"decayFunc": [{
 			"name": "gauss",
-			"field": "ListTime",
+			"field": "listTime",
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "60d"
 		}],
 		"queryConf":[
 			{
+				"minTermFreq": "1",
+				"minDocFreq": "5",
+				"maxQueryTerms": "20",
 				"sourceAd": "true"
 			}
 		]
 	},
 	"suggested-ads": {
-		"fields": ["Subject", "SubCategory.keyword", "Category.keyword", "Commune.keyword", "Region.keyword"],
+		"fields": ["subject", "category.id.keyword", "category.parentid.keyword", "location.communeId.keyword", "location.regionId.keyword"],
 		"decayFunc": [
 			{
 			"name": "gauss",
-			"field": "ListTime",
+			"field": "listTime",
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "30d"
@@ -71,16 +77,16 @@
 		]
 	},
 	"default": {
-		"must": ["Category","SubCategory"],
-		"should": ["Params.BrandID","Params.ModelID","Params.Regdate","Params.Brand","Params.Model"],
-		"mustNot":["ListID"],
+		"must": ["category.id", "category.parentId"],
+		"should": ["location.regionId.keyword", "params.brand.value.keyword","params.model.value.keyword","params.regdate.value.keyword","params.brand.translate","params.model.translate"],
+		"mustNot":["listId"],
 		"queryString": [{
 			"query": "(pro OR professional)",
-			"defaultField": "PublisherType"
+			"defaultField": "publisherType"
 		}],
 		"decayFunc": [{
 			"name": "gauss",
-			"field": "ListTime",
+			"field": "listTime",
 			"origin": "now/1d",
 			"offset": "1d",
 			"scale": "7d"

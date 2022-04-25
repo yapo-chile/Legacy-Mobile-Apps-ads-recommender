@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 )
 
 const (

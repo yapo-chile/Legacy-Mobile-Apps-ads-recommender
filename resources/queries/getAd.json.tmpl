@@ -1,13 +1,7 @@
 {
-    "query": {
-        "bool": {
-            "must": [
-                {
-                    "match": {
-                        "ListID": "{{.ListID}}"
-                    }
-                }
-            ]
+    "query":{
+        "match":{
+            "listId": {{.ListID}}
         }
     }
 }

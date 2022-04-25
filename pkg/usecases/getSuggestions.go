@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
 )
 
 const (
@@ -55,17 +55,17 @@ func (interactor *GetSuggestions) GetSuggestions(
 		err = fmt.Errorf(ErrInvalidCarousel, carouselType)
 		return
 	}
-	parameters, err := interactor.getSuggestionParameters(listID, carouselType)
+	parameters, adID, err := interactor.getSuggestionParameters(listID, carouselType)
 	if err != nil {
 		return
 	}
+
 	ads, err = interactor.SuggestionsRepo.GetAds(
-		listID,
+		adID,
 		parameters,
 		size,
 		from,
 	)
-
 	if err != nil {
 		interactor.Logger.ErrorGettingAds(
 			parameters.Musts, parameters.Shoulds, parameters.MustsNot, err)
@@ -76,6 +76,7 @@ func (interactor *GetSuggestions) GetSuggestions(
 		interactor.Logger.NotEnoughAds(listID, len(ads))
 		return []domain.Ad{}, nil
 	}
+
 	ads, err = interactor.getAdsContact(ads, optionalParams)
 	if err != nil {
 		interactor.Logger.ErrorGettingAdsContact(listID, err)
@@ -86,25 +87,23 @@ func (interactor *GetSuggestions) GetSuggestions(
 // getSuggestionParameters creates and retrieves a struct containing all parameters to get ad suggestions
 // if something goes wrong it retrieves and empty struct and error
 func (interactor *GetSuggestions) getSuggestionParameters(
-	listID, carouselType string) (params SuggestionParameters, err error) {
+	listID, carouselType string) (params SuggestionParameters, adID string, err error) {
 	var ad domain.Ad
-	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
-	if sourceAd, errConv := strconv.ParseBool(params.QueryConf["sourceAd"]); errConv == nil && sourceAd {
-		ad, err = interactor.SuggestionsRepo.GetAd(listID)
-		if err != nil {
-			interactor.Logger.ErrorGettingAd(listID, err)
-			return
-		}
-	}
-	adMap := ad.GetFieldsMapString()
-	params.PriceConf, err = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+	ad, err = interactor.SuggestionsRepo.GetAd(listID)
 	if err != nil {
-		interactor.Logger.ErrorGettingUF(err)
+		interactor.Logger.ErrorGettingAd(listID, err)
 		return
 	}
+	adID = strconv.FormatInt(ad.AdID, 10)
+	adMap := ad.GetFieldsMapString()
+	params.PriceConf = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
+
+	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
 	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
 	params.QueryString = getQueryStringParams(interactor.SuggestionsParams[carouselType]["queryString"])
+
 	params.Musts = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["must"])
+
 	params.Shoulds = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["should"])
 	params.MustsNot = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["mustNot"])
 	params.Filters = getSliceParams(adMap, interactor.SuggestionsParams[carouselType]["filter"])
@@ -142,15 +141,15 @@ func (interactor *GetSuggestions) getAdsContact(
 func (interactor *GetSuggestions) getPriceRange(
 	ad domain.Ad,
 	priceRangeSlice []interface{},
-) (out map[string]string, err error) {
+) (out map[string]string) {
 	out = make(map[string]string)
 	if len(priceRangeSlice) == 0 {
-		return out, err
+		return out
 	}
 
-	uf, err := interactor.IndicatorsRepository.GetUF()
-	if err != nil {
-		return out, err
+	uf, errUF := interactor.IndicatorsRepository.GetUF()
+	if errUF != nil {
+		interactor.Logger.ErrorGettingUF(errUF)
 	}
 
 	priceRange := priceRangeSlice[0].(map[string]interface{})
@@ -180,7 +179,7 @@ func (interactor *GetSuggestions) getPriceRange(
 	} else {
 		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
 	}
-	return out, err
+	return out
 }
 
 // getSize retrieves default size if input size equals zero, otherwise returns size
@@ -226,9 +225,6 @@ func calculateMinMaxPriceRange(
 	// UF value
 	if adCurrency == "peso" {
 		adPrice /= uf
-	} else {
-		// if currency is 'uf', divide by 100, because uf price has 2 extra zeroes
-		adPrice /= 100
 	}
 	minPrice := adPrice - float64(minusValue)
 	maxPrice := adPrice + float64(plusValue)
@@ -241,14 +237,20 @@ func calculateMinMaxPriceRange(
 // Params.{param} or simply as {param}
 func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (out map[string]string) {
 	out = make(map[string]string)
+
 	for _, param := range suggestionsParams {
 		paramKey := param.(string)
 		var paramValue string
-
-		if strings.HasPrefix(paramKey, "Params.") {
-			paramSlice := strings.Split(paramKey, ".")
-			paramValue = strings.ToLower(paramSlice[len(paramSlice)-1])
-		} else {
+		switch {
+		case strings.HasPrefix(paramKey, "params."):
+		case strings.HasPrefix(paramKey, "location."):
+			{
+				paramSlice := strings.Split(paramKey, ".")
+				paramValue = strings.ToLower(paramSlice[1])
+			}
+		case strings.HasPrefix(paramKey, "category."):
+			paramValue = strings.ReplaceAll(paramKey, ".", "")
+		default:
 			paramValue = strings.ToLower(paramKey)
 		}
 

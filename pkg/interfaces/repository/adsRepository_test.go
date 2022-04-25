@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 )
 
 const getAdTemplateName = "getAd"
@@ -37,7 +37,7 @@ func TestGetAdOK(t *testing.T) {
 	mHandler.On("Search", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
 		`{
 			"hits" : {
-				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, "Subject": "ad testing"}}]
+				"hits" : [{"_source" : {"AdID" : 1,"ListID" : 1, Currency: "peso","Subject": "ad testing"}}]
 			}
 		}`,
 		nil,
@@ -49,7 +49,7 @@ func TestGetAdOK(t *testing.T) {
 		regionsConf:    &mDataMapping,
 	}
 	resp, err := repo.GetAd("1")
-	expected := domain.Ad{ListID: 1, Subject: "ad testing", URL: "/test/ad_testing_1"}
+	expected := domain.Ad{ListID: 1, AdID: 1, Currency: "", Subject: "ad testing", URL: "/test/ad_testing_1"}
 	assert.Equal(t, expected, resp)
 	assert.NoError(t, err)
 	mHandler.AssertExpectations(t)

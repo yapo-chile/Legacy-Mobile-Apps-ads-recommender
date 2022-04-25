@@ -1,2 +1,2 @@
-github.mpi-internal.com/Yapo/ads-recommender/pact
-github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure
+ads-recommender/pact
+gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/infrastructure

@@ -12,8 +12,8 @@ export CREATION_DATE ?= $(shell date -u '+%Y%m%d_%H%M%S')
 export CREATOR ?= $(shell git log --format=format:%ae | head -n 1)
 
 # Docker environment
-export DOCKER_REGISTRY ?= containers.mpi-internal.com
-export DOCKER_IMAGE ?= ${DOCKER_REGISTRY}/yapo/${APPNAME}
+export DOCKER_REGISTRY ?= registry.gitlab.com/yapo_team/legacy/mobile-apps
+export DOCKER_IMAGE ?= ${DOCKER_REGISTRY}/${APPNAME}
 export DOCKER_TAG ?= $(shell echo ${BRANCH} | tr '[:upper:]' '[:lower:]' | sed 's,/,_,g')
 export DOCKER ?= docker
 

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/repository"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/infrastructure"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/handlers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/loggers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/repository"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 )
 
 func main() { //nolint: funlen
@@ -90,6 +90,8 @@ func main() { //nolint: funlen
 		conf.ElasticSearchConf.BatchSize,
 		conf.ElasticSearchConf.SearchTimeout,
 		conf.ElasticSearchConf.Host+":"+conf.ElasticSearchConf.Port,
+		conf.ElasticSearchConf.Username,
+		conf.ElasticSearchConf.Password,
 		logger,
 	)
 	HTTPHandler := infrastructure.NewHTTPHandler(logger)
@@ -111,6 +113,7 @@ func main() { //nolint: funlen
 	indicatorsRepository := repository.NewIndicatorsRepository(
 		httpCachedIndicatorHandler,
 		conf.IndicatorsConf.UFPath,
+		conf.IndicatorsConf.DefaultValue,
 	)
 
 	if err := infrastructure.LoadJSONFromFile(
@@ -132,9 +135,9 @@ func main() { //nolint: funlen
 		IndicatorsRepository: indicatorsRepository,
 	}
 	// HealthHandler
-	var healthHandler handlers.HealthHandler
+	var healthHandler handlers.HealthHandler // nolint: typecheck
 
-	getSuggestionsHandler := handlers.GetSuggestionsHandler{
+	getSuggestionsHandler := handlers.GetSuggestionsHandler{ // nolint: typecheck
 		Interactor:          &getSuggestions,
 		CurrencySymbol:      conf.AdConf.CurrencySymbol,
 		UnitOfAccountSymbol: conf.AdConf.UnitOfAccountSymbol,
@@ -155,7 +158,7 @@ func main() { //nolint: funlen
 		WrapperFuncs:   []infrastructure.WrapperFunc{prometheus.TrackHandlerFunc},
 		WithProfiling:  conf.Runtime.Profiling,
 		Routes: infrastructure.Routes{
-			{
+			{ // nolint: typecheck
 				// This is the base path, all routes will start with this prefix
 				Prefix: "",
 				Groups: []infrastructure.Route{

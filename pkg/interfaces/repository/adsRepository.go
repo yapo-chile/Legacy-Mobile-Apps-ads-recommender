@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"text/template"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/domain"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/usecases"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/domain"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/usecases"
 )
 
 var notAlphaNumbericRegex = regexp.MustCompile("[^a-zA-Z0-9]+")
@@ -74,7 +75,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 	if err != nil {
 		return
 	}
-	if len(ads) != 1 {
+	if len(ads) < 1 {
 		err = fmt.Errorf("get ad fails to get it, len: %d", len(ads))
 		return
 	}
@@ -85,7 +86,7 @@ func (repo *adsRepository) GetAd(listID string) (ad domain.Ad, err error) {
 // optional parameters(shoulds), exclude results if param is on ad(mustsNot)
 // and aditional keyword filters (filters and fields) to get ads related to this terms.
 func (repo *adsRepository) GetAds(
-	listID string,
+	adID string,
 	parameters usecases.SuggestionParameters,
 	size, from int,
 ) (ads []domain.Ad, err error) {
@@ -112,7 +113,7 @@ func (repo *adsRepository) GetAds(
 		mustsParams = joinParams(mustsParams, queryStringParams)
 	}
 	if len(parameters.Fields) > 0 {
-		likeParams := repo.processLikeTemplate(listID, parameters.Fields, parameters.QueryConf)
+		likeParams := repo.processLikeTemplate(adID, parameters.Fields, parameters.QueryConf)
 		mustsParams = joinParams(likeParams, mustsParams)
 	}
 	params := map[string]string{
@@ -151,7 +152,6 @@ func (repo *adsRepository) getAdsProcess(
 		return
 	}
 	var parsed elasticResponse
-
 	if err = json.Unmarshal([]byte(response), &parsed); err != nil {
 		return
 	}
@@ -196,11 +196,11 @@ func (repo *adsRepository) processPriceTemplate(priceRange map[string]string) st
 // processLikeTemplate returns the more like this query template as string
 // to be used in the final query
 func (repo *adsRepository) processLikeTemplate(
-	listID string,
+	adID string,
 	fields []string,
 	config map[string]string) string {
 	params := map[string]string{
-		"ListID":        listID,
+		"AdID":          adID,
 		"Fields":        fmt.Sprintf("\"%s\"", strings.Join(fields, "\",\"")),
 		"MinTermFreq":   config["minTermFreq"],
 		"MinDocFreq":    config["minDocFreq"],
@@ -262,28 +262,30 @@ func (repo *adsRepository) getMainImage(imgs []usecases.AdMedia) domain.Image {
 // fillAd parse data from Ad struct on usecases to Ad domain object
 func (repo *adsRepository) fillAd(ad usecases.Ad) domain.Ad {
 	return domain.Ad{
-		ListID:        ad.ListID,
-		UserID:        ad.UserID,
-		CategoryID:    ad.CategoryID,
-		Category:      ad.Category,
-		Type:          ad.Type,
-		CommuneID:     ad.CommuneID,
-		RegionID:      ad.RegionID,
-		Phone:         ad.Phone,
-		Region:        ad.Region,
-		Commune:       ad.Commune,
-		SubCategory:   ad.SubCategory,
-		Name:          ad.Name,
-		Body:          ad.Body,
-		OldPrice:      ad.OldPrice,
-		ListTime:      ad.ListTime,
-		Subject:       ad.Subject,
-		Price:         ad.Price,
-		PublisherType: ad.PublisherType,
-		Currency:      ad.Params["Currency"],
-		URL:           repo.fillURL(ad.Subject, ad.ListID, ad.RegionID),
-		Image:         repo.getMainImage(ad.Media),
-		AdParams:      ad.Params,
+		AdID:             ad.AdID,
+		ListID:           ad.ListID,
+		UserID:           ad.UserID,
+		CategoryID:       ad.Category.ID,
+		Category:         ad.Category.Name,
+		Type:             ad.Type,
+		CommuneID:        ad.Location.ComunneID,
+		RegionID:         ad.Location.RegionID,
+		Phone:            ad.Phone,
+		Region:           ad.Location.RegionName,
+		Commune:          ad.Location.CommuneName,
+		CategoryParent:   ad.Category.ParentName,
+		CategoryParentID: ad.Category.ParentID,
+		Name:             ad.Name,
+		Body:             ad.Body,
+		OldPrice:         ad.OldPrice,
+		ListTime:         ad.ListTime,
+		Subject:          ad.Subject,
+		Price:            ad.Price,
+		PublisherType:    ad.PublisherType,
+		Currency:         fmt.Sprintf("%v", ad.Params["currency"].Value),
+		URL:              repo.fillURL(ad.Subject, ad.ListID, ad.Location.RegionID),
+		Image:            repo.getMainImage(ad.Media),
+		AdParams:         repo.fillAdParams(ad.Params),
 	}
 }
 
@@ -311,6 +313,33 @@ func (repo *adsRepository) fillURL(subject string, listID, regionID int64) strin
 		},
 		"/",
 	)
+}
+
+// fillAdParams returns all the ad params as a map[string]string
+func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (output map[string]string) {
+	output = map[string]string{}
+	for key, val := range adParams {
+		if output[key] == "" {
+			switch val.Type {
+			case "array":
+				{
+					translates := reflect.ValueOf(val.Translate)
+					for i := 0; i < translates.Len(); i++ {
+						output[key] += translates.Index(i).Interface().(string)
+						if i+1 != translates.Len() {
+							output[key] += ","
+						}
+					}
+				}
+			case "int":
+			case "string":
+				output[key] = fmt.Sprintf("%v", val.Value)
+			default:
+				continue // TODO: implement json conversion if you need it
+			}
+		}
+	}
+	return
 }
 
 func sortedKeys(m map[string]string) (keys []string) {

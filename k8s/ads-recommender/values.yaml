@@ -7,10 +7,10 @@ globals:
   env: reg
 
 image:
-  repository: containers.mpi-internal.com/yapo/ads-recommender
+  repository: registry.gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender
   tag: "latest"
-  pullPolicy: IfNotPresent
-  pullSecret: containers-mpi-internal-com
+  pullPolicy: Always
+  pullSecret: registry-gitlab-com
 
 nameOverride: ""
 fullnameOverride: ""
@@ -21,6 +21,8 @@ secrets:
     ELASTIC_INDEX_ALIAS: INDEX
     ELASTIC_HOST: HOST
     ELASTIC_PORT: PORT
+    ELASTIC_USERNAME: USERNAME
+    ELASTIC_PASSWORD: PASSWORD
 
 env:
   ETCD_HOST: http://config-etcd:2397

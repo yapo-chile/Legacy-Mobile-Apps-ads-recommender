@@ -11,7 +11,7 @@ import (
 	"github.com/pact-foundation/pact-go/dsl"
 	"github.com/pact-foundation/pact-go/types"
 
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/infrastructure"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/infrastructure"
 )
 
 type PactConf struct {
@@ -195,8 +195,7 @@ func getJSONPactFile(conf PactConf) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp := fmt.Sprintf("%s", pactFileToSend)
-	err = json.Unmarshal([]byte(resp), &result)
+	err = json.Unmarshal(pactFileToSend, &result)
 	if err != nil {
 		return nil, err
 	}

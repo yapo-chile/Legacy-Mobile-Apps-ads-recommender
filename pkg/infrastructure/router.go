@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gorilla/context"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/handlers"
-	"github.mpi-internal.com/Yapo/ads-recommender/pkg/interfaces/loggers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/handlers"
+	"gitlab.com/yapo_team/legacy/mobile-apps/ads-recommender/pkg/interfaces/loggers"
 	"gopkg.in/gorilla/mux.v1"
 )
 
