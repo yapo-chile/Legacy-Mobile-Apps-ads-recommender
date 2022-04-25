@@ -320,17 +320,21 @@ func (repo *adsRepository) fillAdParams(adParams map[string]usecases.Param) (out
 	output = map[string]string{}
 	for key, val := range adParams {
 		if output[key] == "" {
-			if val.Type == "array" {
-				translates := reflect.ValueOf(val.Translate)
-				for i := 0; i < translates.Len(); i++ {
-					output[key] += translates.Index(i).Interface().(string)
-					if i+1 != translates.Len() {
-						output[key] += ","
+			switch val.Type {
+			case "array":
+				{
+					translates := reflect.ValueOf(val.Translate)
+					for i := 0; i < translates.Len(); i++ {
+						output[key] += translates.Index(i).Interface().(string)
+						if i+1 != translates.Len() {
+							output[key] += ","
+						}
 					}
 				}
-			} else if val.Type == "json" {
-				// TODO: implement json convertion
-			} else if val.Type == "int" || val.Type == "string" {
+			case "json":
+				// TODO: implement json conversion
+			case "int":
+			case "string":
 				output[key] = fmt.Sprintf("%v", val.Value)
 			}
 		}

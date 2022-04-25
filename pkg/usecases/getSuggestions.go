@@ -96,11 +96,7 @@ func (interactor *GetSuggestions) getSuggestionParameters(
 	}
 	adID = strconv.FormatInt(ad.AdID, 10)
 	adMap := ad.GetFieldsMapString()
-	params.PriceConf, err = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
-	if err != nil {
-		interactor.Logger.ErrorGettingUF(err)
-		return
-	}
+	params.PriceConf = interactor.getPriceRange(ad, interactor.SuggestionsParams[carouselType]["priceRange"])
 
 	params.QueryConf = getValues(interactor.SuggestionsParams, carouselType, "queryConf")
 	params.DecayConf = getValues(interactor.SuggestionsParams, carouselType, "decayFunc")
@@ -145,10 +141,10 @@ func (interactor *GetSuggestions) getAdsContact(
 func (interactor *GetSuggestions) getPriceRange(
 	ad domain.Ad,
 	priceRangeSlice []interface{},
-) (out map[string]string, err error) {
+) (out map[string]string) {
 	out = make(map[string]string)
 	if len(priceRangeSlice) == 0 {
-		return out, err
+		return out
 	}
 
 	uf, errUF := interactor.IndicatorsRepository.GetUF()
@@ -183,7 +179,7 @@ func (interactor *GetSuggestions) getPriceRange(
 	} else {
 		out["gte"], out["lte"] = priceRange["gte"].(string), priceRange["lte"].(string)
 	}
-	return out, err
+	return out
 }
 
 // getSize retrieves default size if input size equals zero, otherwise returns size
@@ -245,13 +241,16 @@ func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (o
 	for _, param := range suggestionsParams {
 		paramKey := param.(string)
 		var paramValue string
-
-		if strings.HasPrefix(paramKey, "params.") || strings.HasPrefix(paramKey, "location.") {
-			paramSlice := strings.Split(paramKey, ".")
-			paramValue = strings.ToLower(paramSlice[1])
-		} else if strings.HasPrefix(paramKey, "category.") {
+		switch {
+		case strings.HasPrefix(paramKey, "params."):
+		case strings.HasPrefix(paramKey, "location."):
+			{
+				paramSlice := strings.Split(paramKey, ".")
+				paramValue = strings.ToLower(paramSlice[1])
+			}
+		case strings.HasPrefix(paramKey, "category."):
 			paramValue = strings.ReplaceAll(paramKey, ".", "")
-		} else {
+		default:
 			paramValue = strings.ToLower(paramKey)
 		}
 

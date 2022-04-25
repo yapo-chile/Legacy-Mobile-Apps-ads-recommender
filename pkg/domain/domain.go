@@ -66,7 +66,7 @@ func (ad *Ad) GetFieldsMapString() (output map[string]string) {
 			output[key] = val
 		}
 	}
-	return
+	return output
 }
 
 // Image struct that defines the internal structure of ad images

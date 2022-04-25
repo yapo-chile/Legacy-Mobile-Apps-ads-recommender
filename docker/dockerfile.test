@@ -11,12 +11,6 @@ RUN GO111MODULE=off go get -u \
 
 RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint
 
-WORKDIR /pact
-RUN curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.70.2/pact-1.70.2-linux-x86_64.tar.gz \
- && tar xzf pact-1.70.2-linux-x86_64.tar.gz --strip-components 1
-
-ENV PATH="/pact/bin:${PATH}"
-
 WORKDIR /app
 COPY ./ .
 

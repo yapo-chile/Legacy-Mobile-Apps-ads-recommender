@@ -135,9 +135,9 @@ func main() { //nolint: funlen
 		IndicatorsRepository: indicatorsRepository,
 	}
 	// HealthHandler
-	var healthHandler handlers.HealthHandler
+	var healthHandler handlers.HealthHandler // nolint: typecheck
 
-	getSuggestionsHandler := handlers.GetSuggestionsHandler{
+	getSuggestionsHandler := handlers.GetSuggestionsHandler{ // nolint: typecheck
 		Interactor:          &getSuggestions,
 		CurrencySymbol:      conf.AdConf.CurrencySymbol,
 		UnitOfAccountSymbol: conf.AdConf.UnitOfAccountSymbol,
@@ -158,7 +158,7 @@ func main() { //nolint: funlen
 		WrapperFuncs:   []infrastructure.WrapperFunc{prometheus.TrackHandlerFunc},
 		WithProfiling:  conf.Runtime.Profiling,
 		Routes: infrastructure.Routes{
-			{
+			{ // nolint: typecheck
 				// This is the base path, all routes will start with this prefix
 				Prefix: "",
 				Groups: []infrastructure.Route{

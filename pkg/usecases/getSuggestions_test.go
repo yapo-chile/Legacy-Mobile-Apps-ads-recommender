@@ -469,8 +469,7 @@ func TestGetPriceRangeOK(t *testing.T) {
 	for _, testCase := range testCases {
 		tc := testCase
 		t.Run(tc.name, func(t *testing.T) {
-			output, err := i.getPriceRange(ad, tc.priceRange)
-			assert.NoError(t, err)
+			output := i.getPriceRange(ad, tc.priceRange)
 			assert.Equal(t, tc.expected, output)
 			mIndicatorsRepo.AssertExpectations(t)
 		})

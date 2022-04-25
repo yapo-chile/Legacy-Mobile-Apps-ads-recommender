@@ -11,14 +11,16 @@ import (
 var t = time.Now()
 var today = fmt.Sprintf("%02d-%02d-%d", t.Day(), t.Month(), t.Year())
 var ufPath = ""
+var defaultValue = 30000
 
 func TestNewIndicatorsRepository(t *testing.T) {
 	mHTTPCachedHandler := new(MockHTTPCachedHandler)
 	indicatorsRepository := &indicatorsRepository{
 		HTTPCachedHandler: mHTTPCachedHandler,
 		UFPath:            ufPath,
+		DefaultValue:      float64(defaultValue),
 	}
-	repository := NewIndicatorsRepository(mHTTPCachedHandler, ufPath)
+	repository := NewIndicatorsRepository(mHTTPCachedHandler, ufPath, defaultValue)
 	assert.Equal(t, indicatorsRepository, repository)
 	mHTTPCachedHandler.AssertExpectations(t)
 }

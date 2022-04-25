@@ -195,8 +195,7 @@ func getJSONPactFile(conf PactConf) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp := fmt.Sprintf("%s", pactFileToSend)
-	err = json.Unmarshal([]byte(resp), &result)
+	err = json.Unmarshal(pactFileToSend, &result)
 	if err != nil {
 		return nil, err
 	}
