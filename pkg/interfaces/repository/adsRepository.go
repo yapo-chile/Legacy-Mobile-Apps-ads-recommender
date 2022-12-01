@@ -201,6 +201,7 @@ func (repo *adsRepository) processLikeTemplate(
 	config map[string]string) string {
 	params := map[string]string{
 		"AdID":          adID,
+		"index":         repo.index,
 		"Fields":        fmt.Sprintf("\"%s\"", strings.Join(fields, "\",\"")),
 		"MinTermFreq":   config["minTermFreq"],
 		"MinDocFreq":    config["minDocFreq"],
