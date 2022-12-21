@@ -239,7 +239,9 @@ func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (o
 	out = make(map[string]string)
 
 	for _, param := range suggestionsParams {
-		paramKey := param.(string)
+		paramKey := strings.Split(param.(string), ",")[0]
+		filterValue := strings.Split(param.(string), ",")[1]
+
 		var paramValue string
 		switch {
 		case strings.HasPrefix(paramKey, "params."):
@@ -255,7 +257,7 @@ func getSliceParams(adMap map[string]string, suggestionsParams []interface{}) (o
 		}
 
 		if adMap[paramValue] != "" {
-			out[paramKey] = adMap[paramValue]
+			out[filterValue] = adMap[paramValue]
 		}
 	}
 	return

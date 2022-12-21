@@ -7,7 +7,7 @@ variables:
 
 include:
   - project: 'yapo_team/yotf/sre-team/sre-services/ci-templates/golang-pipeline-template'
-    ref: main
+    ref: golang-1.17
     file: 'gitlab-ci.yml'
   - project: 'yapo_team/yotf/sre-team/sre-services/ci-templates/docker-pipeline-template'
     ref: main
@@ -45,7 +45,6 @@ docker:
   only:
     - develop
     - staging
-    - main
     - master
 
 helm:
@@ -53,7 +52,6 @@ helm:
   only:
     - develop
     - staging
-    - main
     - master
 
 update-chart-dev:
@@ -69,7 +67,6 @@ update-chart-pre:
 update-chart-pro:
   extends: .update-chart-prod
   only:
-    - main
     - master
 
 deploy-k8s-pre:
@@ -80,5 +77,4 @@ deploy-k8s-pre:
 deploy-k8s-pro:
   extends: .deploy-k8s-prod
   only:
-    - main
     - master

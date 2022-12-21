@@ -57,7 +57,7 @@
 		]
 	},
 	"suggested-ads": {
-		"fields": ["subject", "category.id.keyword", "category.parentid.keyword", "location.communeId.keyword", "location.regionId.keyword"],
+		"fields": ["subject", "category.name", "category.parentName", "location.regionName", "location.communeName"],
 		"decayFunc": [
 			{
 			"name": "gauss",
@@ -67,6 +67,7 @@
 			"scale": "30d"
 			}
 		],
+		"filter": ["regionid,location.regionId", "communeid,location.communeId", "categoryid,category.id"],
 		"queryConf":[
 			{
 				"minTermFreq": "1",
