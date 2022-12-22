@@ -212,7 +212,6 @@ func (h *GetSuggestionsHandler) setOutput(
 		}
 		if ad.Currency == "uf" {
 			adOutTemp.Currency = h.UnitOfAccountSymbol
-			adOutTemp.Price /= 100
 		} else {
 			adOutTemp.Currency = h.CurrencySymbol
 		}

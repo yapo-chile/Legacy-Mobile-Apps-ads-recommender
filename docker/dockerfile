@@ -1,4 +1,4 @@
-FROM golang:1.16 AS gobuilder
+FROM golang:1.17 AS gobuilder
 
 ARG APPNAME
 
